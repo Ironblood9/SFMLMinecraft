@@ -6,12 +6,18 @@
 class TileMap : public sf::Drawable, public sf::Transformable {
 public:
     bool load(const std::string& tileset, // file path
-              sf::Vector2u tileSize,     //  square size(exp:{32,32})
-              const std::vector<int>& tiles, //holding the tile index(0 - based) for each cell in the tileset
-              unsigned int width, unsigned int height);
+        sf::Vector2u tileSize,     //  square size(exp:{32,32})
+        const std::vector<int>& tiles, //holding the tile index(0 - based) for each cell in the tileset
+        unsigned int width, unsigned int height);
 
     void setTile(unsigned int x, unsigned int y, int tileId);
     int  getTile(unsigned int x, unsigned int y) const;
+
+
+    unsigned int getWidth() const { return map_width; }
+    unsigned int getHeight() const { return map_height; }
+    sf::Vector2u getTileSize() const { return map_tileSize; }
+    const std::vector<int>& getTiles() const { return map_tiles; }
 
 private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -25,4 +31,3 @@ private:
     unsigned int            map_height = 0;
     sf::Vector2u            map_tileSize;
 };
-
