@@ -15,12 +15,15 @@ int main()
 
     std::vector<int> tiles(width * height);
 
-    // Rastgele harita (%70 boþ/çimen 0, %30 blok 1)
+    // Çimen (0), Toprak (1), Taþ (2), Odun (16), Cam (32)
+    int blockIDs[] = { 0, 1, 2, 3};
+    int blockCount = 4;
+
     for (unsigned int y = 0; y < height; ++y)
     {
         for (unsigned int x = 0; x < width; ++x)
         {
-            tiles[x + y * width] = (rand() % 100 < 70) ? 0 : 1;
+            tiles[x + y * width] = blockIDs[rand() % blockCount];
         }
     }
 
