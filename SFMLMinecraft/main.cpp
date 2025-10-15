@@ -146,50 +146,9 @@ void generateTrees(std::vector<int>& tiles, unsigned int width, unsigned int hei
     }
 }
 
-void generateCaves(std::vector<int>& tiles, unsigned int width, unsigned int height) {
-    for (unsigned int i = 0; i < 20; ++i) {
-        unsigned int caveX = randomInt(10, width - 11);
-        unsigned int caveY = randomInt(height / 2, height - 10);
 
-        int caveSize = randomInt(3, 7);
-        for (int cy = caveY - caveSize; cy <= caveY + caveSize; ++cy) {
-            for (int cx = caveX - caveSize; cx <= caveX + caveSize; ++cx) {
-                if (cx >= 0 && cx < static_cast<int>(width) && cy >= 0 && cy < static_cast<int>(height)) {
-                    float dist = std::sqrt(std::pow(cx - caveX, 2) + std::pow(cy - caveY, 2));
-                    if (dist <= caveSize && tiles[cx + cy * width] != TILE_BEDROCK) {
-                        tiles[cx + cy * width] = TILE_AIR;
 
-                        // Maðara duvarlarýný taþ yap
-                        if (dist >= caveSize - 1 && randomInt(0, 100) < 30) {
-                            tiles[cx + cy * width] = TILE_STONE;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
-void generateWaterLakes(std::vector<int>& tiles, unsigned int width, unsigned int height) {
-    for (unsigned int i = 0; i < 8; ++i) {
-        unsigned int lakeX = randomInt(10, width - 11);
-        unsigned int lakeY = height - 12; // Yüzeye yakýn
-
-        int lakeSize = randomInt(3, 6);
-        for (int ly = lakeY - lakeSize; ly <= lakeY + lakeSize; ++ly) {
-            for (int lx = lakeX - lakeSize; lx <= lakeX + lakeSize; ++lx) {
-                if (lx >= 0 && lx < static_cast<int>(width) && ly >= 0 && ly < static_cast<int>(height)) {
-                    float dist = std::sqrt(std::pow(lx - lakeX, 2) + std::pow(ly - lakeY, 2));
-                    if (dist <= lakeSize) {
-                        if (tiles[lx + ly * width] == TILE_AIR || tiles[lx + ly * width] == TILE_DIRT || tiles[lx + ly * width] == TILE_GRASS) {
-                            tiles[lx + ly * width] = TILE_WATER;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 void generateSurfaceDetails(std::vector<int>& tiles, unsigned int width, unsigned int height) {
     // Çiçekler ve bitkiler
@@ -219,7 +178,7 @@ void generateSurfaceDetails(std::vector<int>& tiles, unsigned int width, unsigne
 }
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "2D Minecraft - Advanced Edition");
+    sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "2D Minecraft");
     window.setFramerateLimit(60);
 
     const unsigned int width = 120u;
@@ -232,14 +191,12 @@ int main() {
     std::cout << "Generating world..." << std::endl;
     generateBasicTerrain(tiles, width, height);
     generateTrees(tiles, width, height);
-    generateCaves(tiles, width, height);
-    generateWaterLakes(tiles, width, height);
     generateSurfaceDetails(tiles, width, height);
     std::cout << "World generation complete!" << std::endl;
 
     TileMap map;
     if (!map.load("tileset.jpeg", tileSize, tiles, width, height)) {
-        std::cout << "Tileset failed to load! Check tileset.png file." << std::endl;
+        std::cout << "Tileset failed to load! Check tileset file." << std::endl;
         return -1;
     }
 
@@ -267,18 +224,18 @@ int main() {
 
     // Katý tile'lar
     std::vector<int> solidTiles = {
-        TILE_GRASS, TILE_DIRT, TILE_STONE, //TILE_COBBLESTONE, TILE_PLANKS,
-        TILE_BEDROCK, //TILE_SAND, TILE_SANDSTONE, TILE_GRAVEL, TILE_COAL_ORE,
-        TILE_IRON_ORE, TILE_GOLD_ORE, TILE_LOG, TILE_LEAVES, //TILE_BRICKS,
-        //TILE_STONE_BRICKS, TILE_MOSSY_COBBLESTONE, TILE_OBSIDIAN, TILE_IRON_BLOCK,
-       // TILE_GOLD_BLOCK, TILE_LAPIS_BLOCK, TILE_BOOKSHELF, TILE_PUMPKIN,
-       //TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE, TILE_JUKEBOX,
-       // TILE_CRAFTING_TABLE, TILE_FURNACE, TILE_CHEST
+        TILE_GRASS, TILE_DIRT, TILE_STONE, TILE_COBBLESTONE, TILE_PLANKS,
+        TILE_BEDROCK, TILE_SAND, TILE_GRAVEL, TILE_COAL_ORE,
+        TILE_IRON_ORE, TILE_GOLD_ORE, TILE_DIAMOND_ORE, TILE_LAPIS_ORE, TILE_LOG, TILE_LEAVES, TILE_BRICKS,
+       TILE_MOSSY_COBBLESTONE, TILE_OBSIDIAN, TILE_IRON_BLOCK,
+       TILE_GOLD_BLOCK, TILE_DIAMOND_BLOCK, TILE_LAPIS_BLOCK, TILE_BOOKSHELF, TILE_PUMPKIN,
+       TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE,
+       TILE_CRAFTING_TABLE, TILE_FURNACE, TILE_CHEST
     };
 
     // Sývý tile'lar
     std::vector<int> liquidTiles = {
-        TILE_WATER, //TILE_LAVA
+        TILE_WATER, TILE_LAVA
     };
 
     // Seçim kutusu
@@ -288,22 +245,6 @@ int main() {
     selectionBox.setOutlineColor(sf::Color::Yellow);
     selectionBox.setOutlineThickness(2.f);
 
-    // Blok envanteri - daha fazla çeþit
-    std::vector<int> inventory = {
-        TILE_GRASS,      // 1
-        TILE_DIRT,       // 2  
-        TILE_STONE,      // 3
-        //TILE_PLANKS,     // 4 - Tahta
-        //TILE_COBBLESTONE,// 5
-        TILE_LOG,        // 6 - Aðaç gövdesi
-        //TILE_BRICKS,     // 7
-       // TILE_SAND,       // 8
-        //TILE_GLASS,      // 9
-        //TILE_WOOL_WHITE  // 0
-    };
-    int selectedBlockIndex = 0;
-    int selectedBlock = inventory[selectedBlockIndex];
-
     sf::Clock clock;
 
     while (window.isOpen()) {
@@ -312,40 +253,6 @@ int main() {
         while (const std::optional<sf::Event> ev = window.pollEvent()) {
             if (ev->is<sf::Event::Closed>()) {
                 window.close();
-            }
-
-            if (auto* keyEvent = ev->getIf<sf::Event::KeyPressed>()) {
-                // Envanter geçiþi (1-0)
-                if (keyEvent->code >= sf::Keyboard::Key::Num1 && keyEvent->code <= sf::Keyboard::Key::Num0) {
-                    int index = static_cast<int>(keyEvent->code) - static_cast<int>(sf::Keyboard::Key::Num1);
-                    if (index >= 0 && index < inventory.size()) {
-                        selectedBlockIndex = index;
-                        selectedBlock = inventory[selectedBlockIndex];
-                        std::cout << "Selected block: " << selectedBlock << std::endl;
-                    }
-                }
-
-                // Envanter kaydýrma
-                if (keyEvent->code == sf::Keyboard::Key::Q) {
-                    selectedBlockIndex = (selectedBlockIndex - 1 + inventory.size()) % inventory.size();
-                    selectedBlock = inventory[selectedBlockIndex];
-                }
-                if (keyEvent->code == sf::Keyboard::Key::E) {
-                    selectedBlockIndex = (selectedBlockIndex + 1) % inventory.size();
-                    selectedBlock = inventory[selectedBlockIndex];
-                }
-
-                // Hýzlý blok seçim tuþlarý
-                if (keyEvent->code == sf::Keyboard::Key::F) {
-                    selectedBlock = TILE_TORCH; // Meþale
-                }
-                if (keyEvent->code == sf::Keyboard::Key::G) {
-                    selectedBlock = TILE_WATER; // Su
-                }
-
-                if (keyEvent->code == sf::Keyboard::Key::Escape) {
-                    window.close();
-                }
             }
         }
 
@@ -456,11 +363,6 @@ int main() {
                     sf::Vector2f(static_cast<float>(tileSize.x),
                         static_cast<float>(tileSize.y))
                 );
-
-                if (!rectIntersects(blockRect, sf::FloatRect(player.getPosition(), player.getSize()))) {
-                    map.setTile(static_cast<unsigned int>(mX),
-                        static_cast<unsigned int>(mY), selectedBlock);
-                }
             }
         }
 

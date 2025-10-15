@@ -1,4 +1,5 @@
 #include "TileMap.h"
+#include "TileID.h"
 #include <iostream>
 #include <cmath>
 
@@ -21,7 +22,7 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
     map_height = height;
     map_tiles = tiles;
 
-    //Triangles 
+    // Triangles 
     map_vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
     map_vertices.resize(static_cast<std::size_t>(width) * height * 6); // 6 vertex = 2 Triangles
 
@@ -34,55 +35,61 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
     return true;
 }
 
-void TileMap::updateTileVertices(unsigned int x, unsigned int y)
+void TileMap::updateTileVertices(unsigned int i, unsigned int j)
 {
-    if (x >= map_width || y >= map_height) return;
-    unsigned int index = (x + y * map_width) * 6; // 6 vertex per tile
-    int tileNumber = map_tiles[x + y * map_width];
+    // Tile indexini al
+    int tileNumber = map_tiles[i + j * map_width];
 
-    unsigned int tsCols = map_tileset.getSize().x / map_tileSize.x;
-    if (tsCols == 0) return;
+    // Hava tile'ý ise vertexleri saydam yap ve çýk
+    if (tileNumber == TILE_AIR) {
+        // Bu tile için tüm vertexleri saydam yap
+        int vertexIndex = (i + j * map_width) * 6;
+        for (int k = 0; k < 6; ++k) {
+            map_vertices[vertexIndex + k].color = sf::Color::Transparent;
+        }
+        return;
+    }
 
-    int tu = tileNumber % static_cast<int>(tsCols);
-    int tv = tileNumber / static_cast<int>(tsCols);
+    // Tileset'teki tile pozisyonunu hesapla
+    int tu = tileNumber % (map_tileset.getSize().x / map_tileSize.x);
+    int tv = tileNumber / (map_tileset.getSize().x / map_tileSize.x);
 
-    // World positions
-    sf::Vector2f pos0(static_cast<float>(x * map_tileSize.x), static_cast<float>(y * map_tileSize.y));
-    sf::Vector2f pos1(static_cast<float>((x + 1) * map_tileSize.x), static_cast<float>(y * map_tileSize.y));
-    sf::Vector2f pos2(static_cast<float>((x + 1) * map_tileSize.x), static_cast<float>((y + 1) * map_tileSize.y));
-    sf::Vector2f pos3(static_cast<float>(x * map_tileSize.x), static_cast<float>((y + 1) * map_tileSize.y));
+    // Vertex indexini al
+    int vertexIndex = (i + j * map_width) * 6;
 
-    // Texture coordinate
-    sf::Vector2f tex0(static_cast<float>(tu * map_tileSize.x), static_cast<float>(tv * map_tileSize.y));
-    sf::Vector2f tex1(static_cast<float>((tu + 1) * map_tileSize.x), static_cast<float>(tv * map_tileSize.y));
-    sf::Vector2f tex2(static_cast<float>((tu + 1) * map_tileSize.x), static_cast<float>((tv + 1) * map_tileSize.y));
-    sf::Vector2f tex3(static_cast<float>(tu * map_tileSize.x), static_cast<float>((tv + 1) * map_tileSize.y));
+    // Vertex pozisyonlarýný ve texture koordinatlarýný ayarla
+    float left = static_cast<float>(i * map_tileSize.x);
+    float right = left + static_cast<float>(map_tileSize.x);
+    float top = static_cast<float>(j * map_tileSize.y);
+    float bottom = top + static_cast<float>(map_tileSize.y);
 
-    // Triangle 1: pos0, pos1, pos2
-    map_vertices[index].position = pos0;
-    map_vertices[index].texCoords = tex0;
-    map_vertices[index].color = sf::Color::White;
+    float texLeft = static_cast<float>(tu * map_tileSize.x);
+    float texRight = texLeft + static_cast<float>(map_tileSize.x);
+    float texTop = static_cast<float>(tv * map_tileSize.y);
+    float texBottom = texTop + static_cast<float>(map_tileSize.y);
 
-    map_vertices[index + 1].position = pos1;
-    map_vertices[index + 1].texCoords = tex1;
-    map_vertices[index + 1].color = sf::Color::White;
+    // Ýlk üçgen
+    map_vertices[vertexIndex + 0].position = sf::Vector2f(left, top);
+    map_vertices[vertexIndex + 1].position = sf::Vector2f(right, top);
+    map_vertices[vertexIndex + 2].position = sf::Vector2f(left, bottom);
 
-    map_vertices[index + 2].position = pos2;
-    map_vertices[index + 2].texCoords = tex2;
-    map_vertices[index + 2].color = sf::Color::White;
+    map_vertices[vertexIndex + 0].texCoords = sf::Vector2f(texLeft, texTop);
+    map_vertices[vertexIndex + 1].texCoords = sf::Vector2f(texRight, texTop);
+    map_vertices[vertexIndex + 2].texCoords = sf::Vector2f(texLeft, texBottom);
 
-    // Triangle 2: pos0, pos2, pos3
-    map_vertices[index + 3].position = pos0;
-    map_vertices[index + 3].texCoords = tex0;
-    map_vertices[index + 3].color = sf::Color::White;
+    // Ýkinci üçgen
+    map_vertices[vertexIndex + 3].position = sf::Vector2f(right, top);
+    map_vertices[vertexIndex + 4].position = sf::Vector2f(right, bottom);
+    map_vertices[vertexIndex + 5].position = sf::Vector2f(left, bottom);
 
-    map_vertices[index + 4].position = pos2;
-    map_vertices[index + 4].texCoords = tex2;
-    map_vertices[index + 4].color = sf::Color::White;
+    map_vertices[vertexIndex + 3].texCoords = sf::Vector2f(texRight, texTop);
+    map_vertices[vertexIndex + 4].texCoords = sf::Vector2f(texRight, texBottom);
+    map_vertices[vertexIndex + 5].texCoords = sf::Vector2f(texLeft, texBottom);
 
-    map_vertices[index + 5].position = pos3;
-    map_vertices[index + 5].texCoords = tex3;
-    map_vertices[index + 5].color = sf::Color::White;
+    // Vertex renklerini normale döndür
+    for (int k = 0; k < 6; ++k) {
+        map_vertices[vertexIndex + k].color = sf::Color::White;
+    }
 }
 
 int TileMap::getTile(unsigned int x, unsigned int y) const
@@ -91,13 +98,13 @@ int TileMap::getTile(unsigned int x, unsigned int y) const
     return map_tiles[x + y * map_width];
 }
 
-void TileMap::setTile(unsigned int x, unsigned int y, int tileId)
+void TileMap::setTile(unsigned int i, unsigned int j, int tile)
 {
-    if (x >= map_width || y >= map_height) return;
-    map_tiles[x + y * map_width] = tileId;
-    updateTileVertices(x, y);
+    if (i < map_width && j < map_height) {
+        map_tiles[i + j * map_width] = tile;
+        updateTileVertices(i, j);
+    }
 }
-
 void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     states.transform *= getTransform();
