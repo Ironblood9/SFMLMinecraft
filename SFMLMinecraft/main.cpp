@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include "TileMap.h"
 #include "TileID.h"
 #include <vector>
@@ -47,70 +46,145 @@ bool rectIntersects(const sf::FloatRect& rect1, const sf::FloatRect& rect2) {
         rect1.position.y + rect1.size.y < rect2.position.y);
 }
 
-// Rastgele sayý üretici
+// Random number generator
 int randomInt(int min, int max) {
     return min + std::rand() % (max - min + 1);
 }
 
-// Çevre oluþturma fonksiyonlarý
-void generateBasicTerrain(std::vector<int>& tiles, unsigned int width, unsigned int height) {
-    int baseHeight = height - 20;
-
-    for (unsigned int x = 0; x < width; ++x) {
-        // Yüzey: Çimen
-        tiles[x + baseHeight * width] = TILE_GRASS;
-
-        // Yüzey altý: Toprak
-        for (unsigned int y = baseHeight + 1; y < baseHeight + 4; ++y) {
-            if (y < height) tiles[x + y * width] = TILE_DIRT;
-        }
-
-        // Taþ katmaný
-        for (unsigned int y = baseHeight + 4; y < height - 5; ++y) {
-            if (y < height) {
-                // Maden damarlarý
-                if (randomInt(0, 100) < 3) tiles[x + y * width] = TILE_COAL_ORE;
-                else if (randomInt(0, 100) < 2) tiles[x + y * width] = TILE_IRON_ORE;
-                else if (randomInt(0, 100) < 1) tiles[x + y * width] = TILE_GOLD_ORE;
-                else tiles[x + y * width] = TILE_STONE;
-            }
-        }
-
-        // En alt: Bedrock
-        for (unsigned int y = height - 5; y < height; ++y) {
-            if (y < height) {
-                if (y == height - 1) tiles[x + y * width] = TILE_BEDROCK;
-                else if (randomInt(0, 100) < 80) tiles[x + y * width] = TILE_BEDROCK;
-                else tiles[x + y * width] = TILE_STONE;
-            }
-        }
-
-        // Yüzey varyasyonlarý
-        if (x % 3 == 0) {
-            int variation = randomInt(-3, 3);
-            int newSurface = baseHeight + variation;
-
-            if (newSurface >= 5 && newSurface < static_cast<int>(height) - 5) {
-                for (unsigned int y = 0; y < height; ++y) {
-                    unsigned int idx = x + y * width;
-                    if (y == static_cast<unsigned int>(newSurface)) {
-                        tiles[idx] = TILE_GRASS;
-                    }
-                    else if (y > static_cast<unsigned int>(newSurface) && y <= static_cast<unsigned int>(newSurface) + 3) {
-                        tiles[idx] = TILE_DIRT;
-                    }
+void generateWaterPool(std::vector<int>& tiles, unsigned int width, unsigned int height, int centerX, int centerY, int size) {
+    for (int x = centerX - size; x <= centerX + size; ++x) {
+        for (int y = centerY; y <= centerY + size; ++y) { // Aþaðýya doðru oluþtur
+            if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
+                float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2));
+                if (distance < size) {
+                    tiles[x + y * width] = TILE_WATER;
                 }
             }
         }
     }
 }
 
-void generateTrees(std::vector<int>& tiles, unsigned int width, unsigned int height) {
-    for (unsigned int i = 0; i < 25; ++i) {
+void generateLavaPool(std::vector<int>& tiles, unsigned int width, unsigned int height, int centerX, int centerY, int size) {
+    for (int x = centerX - size; x <= centerX + size; ++x) {
+        for (int y = centerY; y <= centerY + size; ++y) { 
+            if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
+                float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2));
+                if (distance < size) {
+                    tiles[x + y * width] = TILE_LAVA;
+                }
+            }
+        }
+    }
+}
+
+void generateUndergroundCave(std::vector<int>& tiles, unsigned int width, unsigned int height, int centerX, int centerY, int size) {
+    for (int x = centerX - size; x <= centerX + size; ++x) {
+        for (int y = centerY - size / 2; y <= centerY + size / 2; ++y) {
+            if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
+                float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2) * 1.5f);
+                if (distance < size) {
+                    tiles[x + y * width] = TILE_AIR; 
+                }
+            }
+        }
+    }
+}
+
+void generateCleanTerrainWithLiquids(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    int baseHeight = height - 25;
+
+    for (unsigned int x = 0; x < width; ++x) {
+        int surfaceY = baseHeight;
+
+        if (x % 4 == 0) {
+            surfaceY += randomInt(-1, 1);
+        }
+
+        tiles[x + surfaceY * width] = TILE_GRASS;
+
+        int dirtDepth = 3 + randomInt(0, 1);
+        for (int y = surfaceY + 1; y < surfaceY + dirtDepth; ++y) {
+            if (y < static_cast<int>(height)) {
+                tiles[x + y * width] = TILE_DIRT;
+            }
+        }
+
+        for (int y = surfaceY + dirtDepth; y < static_cast<int>(height) - 3; ++y) {
+            if (y < static_cast<int>(height)) {
+                if (y > surfaceY + dirtDepth + 5) {
+                    if (randomInt(0, 100) < 5) {
+                        tiles[x + y * width] = TILE_COAL_ORE;
+                    }
+                    else if (randomInt(0, 100) < 3 && y > surfaceY + 10) {
+                        tiles[x + y * width] = TILE_IRON_ORE;
+                    }
+                    else if (randomInt(0, 100) < 2 && y > surfaceY + 15) {
+                        tiles[x + y * width] = TILE_GOLD_ORE;
+                    }
+                    else if (randomInt(0, 100) < 1 && y > surfaceY + 20) {
+                        tiles[x + y * width] = TILE_DIAMOND_ORE;
+                    }
+                    else {
+                        tiles[x + y * width] = TILE_STONE;
+                    }
+                }
+                else {
+                    tiles[x + y * width] = TILE_STONE;
+                }
+            }
+        }
+
+        for (int y = static_cast<int>(height) - 3; y < static_cast<int>(height); ++y) {
+            if (y < static_cast<int>(height)) {
+                tiles[x + y * width] = TILE_BEDROCK;
+            }
+        }
+    }
+
+    std::cout << "Generating surface water pools..." << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        int poolX = randomInt(15, width - 16);
+        int surfaceY = -1;
+        //Find surface height
+        for (unsigned int y = 0; y < height; ++y) {
+            if (tiles[poolX + y * width] == TILE_GRASS) {
+                surfaceY = static_cast<int>(y);
+                break;
+            }
+        }
+
+        if (surfaceY > 0 && surfaceY < static_cast<int>(height) - 5) {
+            std::cout << "Water pool at: " << poolX << ", " << surfaceY + 1 << std::endl;
+            generateWaterPool(tiles, width, height, poolX, surfaceY + 1, randomInt(2, 4));
+        }
+    }
+
+    std::cout << "Generating underground lava pools..." << std::endl;
+    for (int i = 0; i < 6; ++i) {
+        int lavaX = randomInt(10, width - 11);
+        int lavaY = randomInt(height / 2 + 10, height - 15);
+
+        std::cout << "Lava pool at: " << lavaX << ", " << lavaY << std::endl;
+        generateUndergroundCave(tiles, width, height, lavaX, lavaY, randomInt(3, 5));
+        generateLavaPool(tiles, width, height, lavaX, lavaY, randomInt(2, 4));
+    }
+
+    std::cout << "Generating underground water pools..." << std::endl;
+    for (int i = 0; i < 5; ++i) {
+        int waterX = randomInt(10, width - 11);
+        int waterY = randomInt(height / 2 + 5, height - 10);
+
+        std::cout << "Water cave at: " << waterX << ", " << waterY << std::endl;
+        generateUndergroundCave(tiles, width, height, waterX, waterY, randomInt(3, 6));
+        generateWaterPool(tiles, width, height, waterX, waterY, randomInt(2, 4));
+    }
+}
+
+void generateNiceTrees(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    for (unsigned int i = 0; i < 20; ++i) {
         unsigned int treeX = randomInt(5, width - 6);
         int surfaceY = -1;
 
-        // Yüzey yüksekliðini bul
         for (unsigned int y = 0; y < height; ++y) {
             if (tiles[treeX + y * width] == TILE_GRASS) {
                 surfaceY = static_cast<int>(y);
@@ -119,8 +193,7 @@ void generateTrees(std::vector<int>& tiles, unsigned int width, unsigned int hei
         }
 
         if (surfaceY > 5) {
-            // Aðaç gövdesi
-            int trunkHeight = randomInt(4, 7);
+            int trunkHeight = randomInt(4, 6);
             for (int dy = 1; dy <= trunkHeight; ++dy) {
                 int trunkY = surfaceY - dy;
                 if (trunkY >= 0) {
@@ -128,13 +201,14 @@ void generateTrees(std::vector<int>& tiles, unsigned int width, unsigned int hei
                 }
             }
 
-            // Yapraklar
-            int leafStartY = surfaceY - trunkHeight - 1;
-            for (int ly = leafStartY; ly >= leafStartY - 3; --ly) {
-                for (int lx = treeX - 2; lx <= treeX + 2; ++lx) {
+            int leafStartY = surfaceY - trunkHeight;
+            int leafSize = 2;
+
+            for (int ly = leafStartY; ly >= leafStartY - 2; --ly) {
+                for (int lx = treeX - leafSize; lx <= treeX + leafSize; ++lx) {
                     if (lx >= 0 && lx < static_cast<int>(width) && ly >= 0) {
-                        // Yaprak þekli (elmas)
-                        if (std::abs(lx - static_cast<int>(treeX)) + std::abs(ly - (leafStartY - 1)) <= 3) {
+                        if (std::abs(lx - static_cast<int>(treeX)) <= leafSize &&
+                            std::abs(ly - leafStartY) <= 2) {
                             if (tiles[lx + ly * width] == TILE_AIR) {
                                 tiles[lx + ly * width] = TILE_LEAVES;
                             }
@@ -146,13 +220,8 @@ void generateTrees(std::vector<int>& tiles, unsigned int width, unsigned int hei
     }
 }
 
-
-
-
-
-void generateSurfaceDetails(std::vector<int>& tiles, unsigned int width, unsigned int height) {
-    // Çiçekler ve bitkiler
-    for (unsigned int i = 0; i < 50; ++i) {
+void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    for (unsigned int i = 0; i < 30; ++i) {
         unsigned int plantX = randomInt(2, width - 3);
         int surfaceY = -1;
 
@@ -165,11 +234,11 @@ void generateSurfaceDetails(std::vector<int>& tiles, unsigned int width, unsigne
 
         if (surfaceY > 0) {
             int plantY = surfaceY - 1;
-            if (plantY >= 0) {
-                if (randomInt(0, 100) < 60) {
+            if (plantY >= 0 && tiles[plantX + plantY * width] == TILE_AIR) {
+                if (randomInt(0, 100) < 70) {
                     tiles[plantX + plantY * width] = TILE_GRASS;
                 }
-                else if (randomInt(0, 100) < 30) {
+                else {
                     tiles[plantX + plantY * width] = (randomInt(0, 1) == 0 ? TILE_FLOWER_RED : TILE_FLOWER_YELLOW);
                 }
             }
@@ -181,18 +250,19 @@ int main() {
     sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "2D Minecraft");
     window.setFramerateLimit(60);
 
-    const unsigned int width = 120u;
-    const unsigned int height = 80u;
+    const unsigned int width = 100u;
+    const unsigned int height = 60u;
     const sf::Vector2u tileSize(46u, 46u);
 
     std::vector<int> tiles(width * height, TILE_AIR);
 
-    // Dünya oluþturma
-    std::cout << "Generating world..." << std::endl;
-    generateBasicTerrain(tiles, width, height);
-    generateTrees(tiles, width, height);
-    generateSurfaceDetails(tiles, width, height);
+    // Create World
+    std::cout << "Generating world with liquids..." << std::endl;
+    generateCleanTerrainWithLiquids(tiles, width, height);
+    generateNiceTrees(tiles, width, height);
+    generateSimpleDetails(tiles, width, height);
     std::cout << "World generation complete!" << std::endl;
+    std::cout << "Features: Diamond ore (rare), Water pools, Lava pools underground" << std::endl;
 
     TileMap map;
     if (!map.load("tileset.jpeg", tileSize, tiles, width, height)) {
@@ -200,13 +270,13 @@ int main() {
         return -1;
     }
 
-    // Kamera
+    // Camera
     sf::View view(window.getDefaultView());
 
-    // Oyuncu
+    // Player
     sf::RectangleShape player(sf::Vector2f(static_cast<float>(tileSize.x) - 6.f,
         static_cast<float>(tileSize.y) - 6.f));
-    player.setFillColor(sf::Color(255, 100, 100)); // Kýrmýzýmsý karakter
+    player.setFillColor(sf::Color(255, 100, 100));
     player.setOutlineColor(sf::Color::White);
     player.setOutlineThickness(1.f);
 
@@ -222,23 +292,13 @@ int main() {
     bool onGround = false;
     float jumpCooldown = 0.f;
 
-    // Katý tile'lar
+    // Solid tiles
     std::vector<int> solidTiles = {
-        TILE_GRASS, TILE_DIRT, TILE_STONE, TILE_COBBLESTONE, TILE_PLANKS,
-        TILE_BEDROCK, TILE_SAND, TILE_GRAVEL, TILE_COAL_ORE,
-        TILE_IRON_ORE, TILE_GOLD_ORE, TILE_DIAMOND_ORE, TILE_LAPIS_ORE, TILE_LOG, TILE_LEAVES, TILE_BRICKS,
-       TILE_MOSSY_COBBLESTONE, TILE_OBSIDIAN, TILE_IRON_BLOCK,
-       TILE_GOLD_BLOCK, TILE_DIAMOND_BLOCK, TILE_LAPIS_BLOCK, TILE_BOOKSHELF, TILE_PUMPKIN,
-       TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE,
-       TILE_CRAFTING_TABLE, TILE_FURNACE, TILE_CHEST
+        TILE_GRASS, TILE_DIRT, TILE_STONE, TILE_BEDROCK,
+        TILE_COAL_ORE, TILE_IRON_ORE, TILE_GOLD_ORE, TILE_DIAMOND_ORE,
+        TILE_LOG, TILE_LEAVES
     };
 
-    // Sývý tile'lar
-    std::vector<int> liquidTiles = {
-        TILE_WATER, TILE_LAVA
-    };
-
-    // Seçim kutusu
     sf::RectangleShape selectionBox(sf::Vector2f(static_cast<float>(tileSize.x),
         static_cast<float>(tileSize.y)));
     selectionBox.setFillColor(sf::Color::Transparent);
@@ -256,7 +316,6 @@ int main() {
             }
         }
 
-        // Giriþ iþleme
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
             playerVelocity.x -= moveSpeed;
         }
@@ -264,15 +323,12 @@ int main() {
             playerVelocity.x += moveSpeed;
         }
 
-        // Hýz sýnýrlama
         if (playerVelocity.x > maxSpeed) playerVelocity.x = maxSpeed;
         if (playerVelocity.x < -maxSpeed) playerVelocity.x = -maxSpeed;
 
-        // Sürtünme
         playerVelocity.x *= friction;
         if (std::abs(playerVelocity.x) < 0.1f) playerVelocity.x = 0.f;
 
-        // Zýplama
         if (jumpCooldown > 0.f) {
             jumpCooldown -= deltaTime;
         }
@@ -283,15 +339,13 @@ int main() {
             jumpCooldown = 0.2f;
         }
 
-        // Yer çekimi
         if (!onGround) {
             playerVelocity.y += gravity;
         }
 
-        // Çarpýþma kontrolü
+        // collision control
         sf::Vector2f newPos = playerPos;
 
-        // Yatay çarpýþma
         newPos.x += playerVelocity.x;
         sf::FloatRect horizontalBounds(newPos, player.getSize());
         if (checkCollision(horizontalBounds, map, solidTiles)) {
@@ -299,7 +353,6 @@ int main() {
             playerVelocity.x = 0.f;
         }
 
-        // Dikey çarpýþma
         newPos.y += playerVelocity.y;
         sf::FloatRect verticalBounds(newPos, player.getSize());
         if (checkCollision(verticalBounds, map, solidTiles)) {
@@ -320,21 +373,19 @@ int main() {
         playerPos = newPos;
         player.setPosition(playerPos);
 
-        // Pencere sýnýrlarý
         unsigned int map_width = map.getWidth();
         if (playerPos.x < 0.f) playerPos.x = 0.f;
         if (playerPos.x > (map_width * tileSize.x) - player.getSize().x)
             playerPos.x = (map_width * tileSize.x) - player.getSize().x;
         if (playerPos.y < 0.f) playerPos.y = 0.f;
 
-        // Kamera takibi
+        // Camera chasing
         sf::Vector2f cameraTarget = playerPos + player.getSize() / 2.f;
         sf::Vector2f cameraPos = view.getCenter();
         sf::Vector2f cameraVelocity = (cameraTarget - cameraPos) * 6.f * deltaTime;
         view.setCenter(cameraPos + cameraVelocity);
         window.setView(view);
 
-        // Blok düzenleme
         sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
 
@@ -347,27 +398,34 @@ int main() {
         if (mX >= 0 && mX < static_cast<int>(map_width) &&
             mY >= 0 && mY < static_cast<int>(map.getHeight())) {
 
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                float distX = std::abs((mX * tileSize.x + tileSize.x / 2.f) - (playerPos.x + player.getSize().x / 2.f));
-                float distY = std::abs((mY * tileSize.y + tileSize.y / 2.f) - (playerPos.y + player.getSize().y / 2.f));
+            float distX = std::abs((mX * tileSize.x + tileSize.x / 2.f) - (playerPos.x + player.getSize().x / 2.f));
+            float distY = std::abs((mY * tileSize.y + tileSize.y / 2.f) - (playerPos.y + player.getSize().y / 2.f));
 
+            // Block breaking
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
                 if (distX > tileSize.x * 1.5f || distY > tileSize.y * 1.5f) {
                     map.setTile(static_cast<unsigned int>(mX),
                         static_cast<unsigned int>(mY), TILE_AIR);
                 }
             }
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-                sf::FloatRect blockRect(
-                    sf::Vector2f(static_cast<float>(mX * tileSize.x),
-                        static_cast<float>(mY * tileSize.y)),
-                    sf::Vector2f(static_cast<float>(tileSize.x),
-                        static_cast<float>(tileSize.y))
-                );
+
+            // Block putting
+            else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+                if (distX > tileSize.x * 1.5f || distY > tileSize.y * 1.5f) {
+                    int currentTile = map.getTile(static_cast<unsigned int>(mX),
+                        static_cast<unsigned int>(mY));
+
+                    if (currentTile == TILE_AIR) {
+                        map.setTile(static_cast<unsigned int>(mX),
+                            static_cast<unsigned int>(mY), TILE_DIRT);
+                    }
+                }
             }
         }
 
-        // Çizim
-        window.clear(sf::Color(120, 180, 240)); // Daha açýk mavi gökyüzü
+
+        // Draw
+        window.clear(sf::Color(120, 180, 240));
 
         window.draw(map);
         window.draw(player);

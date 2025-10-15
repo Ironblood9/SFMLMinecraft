@@ -37,12 +37,10 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
 
 void TileMap::updateTileVertices(unsigned int i, unsigned int j)
 {
-    // Tile indexini al
+    // Get the tile intex
     int tileNumber = map_tiles[i + j * map_width];
-
-    // Hava tile'ý ise vertexleri saydam yap ve çýk
+    //Air
     if (tileNumber == TILE_AIR) {
-        // Bu tile için tüm vertexleri saydam yap
         int vertexIndex = (i + j * map_width) * 6;
         for (int k = 0; k < 6; ++k) {
             map_vertices[vertexIndex + k].color = sf::Color::Transparent;
@@ -50,14 +48,13 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
         return;
     }
 
-    // Tileset'teki tile pozisyonunu hesapla
     int tu = tileNumber % (map_tileset.getSize().x / map_tileSize.x);
     int tv = tileNumber / (map_tileset.getSize().x / map_tileSize.x);
 
-    // Vertex indexini al
+    // Get vertex index
     int vertexIndex = (i + j * map_width) * 6;
 
-    // Vertex pozisyonlarýný ve texture koordinatlarýný ayarla
+    // Adjust vertex position ve texture coordinate 
     float left = static_cast<float>(i * map_tileSize.x);
     float right = left + static_cast<float>(map_tileSize.x);
     float top = static_cast<float>(j * map_tileSize.y);
@@ -68,7 +65,7 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
     float texTop = static_cast<float>(tv * map_tileSize.y);
     float texBottom = texTop + static_cast<float>(map_tileSize.y);
 
-    // Ýlk üçgen
+    // First triangle
     map_vertices[vertexIndex + 0].position = sf::Vector2f(left, top);
     map_vertices[vertexIndex + 1].position = sf::Vector2f(right, top);
     map_vertices[vertexIndex + 2].position = sf::Vector2f(left, bottom);
@@ -77,7 +74,7 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
     map_vertices[vertexIndex + 1].texCoords = sf::Vector2f(texRight, texTop);
     map_vertices[vertexIndex + 2].texCoords = sf::Vector2f(texLeft, texBottom);
 
-    // Ýkinci üçgen
+    // Second triangle
     map_vertices[vertexIndex + 3].position = sf::Vector2f(right, top);
     map_vertices[vertexIndex + 4].position = sf::Vector2f(right, bottom);
     map_vertices[vertexIndex + 5].position = sf::Vector2f(left, bottom);
@@ -86,7 +83,7 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
     map_vertices[vertexIndex + 4].texCoords = sf::Vector2f(texRight, texBottom);
     map_vertices[vertexIndex + 5].texCoords = sf::Vector2f(texLeft, texBottom);
 
-    // Vertex renklerini normale döndür
+    // Change the vertex color to normal
     for (int k = 0; k < 6; ++k) {
         map_vertices[vertexIndex + k].color = sf::Color::White;
     }

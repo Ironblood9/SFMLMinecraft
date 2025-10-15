@@ -7,6 +7,7 @@ enum TileID {
     TILE_GRASS=3,
     TILE_PLANKS =4,
     TILE_BRICKS = 7,
+    TILE_TNT=8,
     TILE_FLOWER_RED = 12,
     TILE_FLOWER_YELLOW = 13,
     TILE_COBBLESTONE =16,
@@ -29,6 +30,8 @@ enum TileID {
     TILE_CRAFTING_TABLE = 60,
     TILE_TORCH = 80,
     TILE_PUMPKIN =102,
+    TILE_DARK_LOG=116,
+    TILE_WHITE_LOG = 117,
     TILE_MELON =137,
     TILE_CAKE = 140,
     TILE_LAPIS_BLOCK = 144,
@@ -37,5 +40,5 @@ enum TileID {
     TILE_ENCHANTING_TABLE = 182,
     TILE_WATER = 205,
     TILE_LAVA=210,
-    TILE_COUNT        // toplam tile sayýsý
+    TILE_COUNT        // Total tile count
 };
