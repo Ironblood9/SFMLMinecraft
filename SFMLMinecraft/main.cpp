@@ -224,7 +224,7 @@ int main() {
 
     const unsigned int width = 120u;
     const unsigned int height = 80u;
-    const sf::Vector2u tileSize(32u, 32u);
+    const sf::Vector2u tileSize(46u, 46u);
 
     std::vector<int> tiles(width * height, TILE_AIR);
 
@@ -238,7 +238,7 @@ int main() {
     std::cout << "World generation complete!" << std::endl;
 
     TileMap map;
-    if (!map.load("tileset.jpg", tileSize, tiles, width, height)) {
+    if (!map.load("tileset.jpeg", tileSize, tiles, width, height)) {
         std::cout << "Tileset failed to load! Check tileset.png file." << std::endl;
         return -1;
     }
