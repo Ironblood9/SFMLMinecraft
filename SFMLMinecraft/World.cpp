@@ -247,22 +247,26 @@ void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned
         if (surfaceY > 0) {
             int plantY = surfaceY - 1;
             if (plantY >= 0 && tiles[plantX + plantY * width] == TILE_AIR) {
-                // Önce çim için %60 þans
                 if (randomInt(0, 99) < 60) {
                     tiles[plantX + plantY * width] = TILE_GRASS;
                 }
-                // Sonra diðer bitkiler için sýrayla kontrol
-                else if (randomInt(0, 99) < 30) {
-                    tiles[plantX + plantY * width] = TILE_FLOWER_RED;
-                }
-                else if (randomInt(0, 99) < 30) {
-                    tiles[plantX + plantY * width] = TILE_FLOWER_YELLOW;
-                }
-                else if (randomInt(0, 99) < 20) {
+                else if (randomInt(0, 99) < 40) {
                     tiles[plantX + plantY * width] = TILE_PUMPKIN;
                 }
-                else if (randomInt(0, 99) < 20) {
+                else if (randomInt(0, 99) < 40) {
                     tiles[plantX + plantY * width] = TILE_MELON;
+                }
+                else if (randomInt(0, 99) < 40) {
+                    tiles[plantX + plantY * width] = TILE_MUSHROOM_RED;
+                }
+                else if (randomInt(0, 99) < 40) {
+                    tiles[plantX + plantY * width] = TILE_MUSHROOM_BROWN;
+                }
+                else if (randomInt(0, 99) < 50) {
+                    tiles[plantX + plantY * width] = TILE_FLOWER_RED;
+                }
+                else if (randomInt(0, 99) < 50) {
+                    tiles[plantX + plantY * width] = TILE_FLOWER_YELLOW;
                 }
             }
         }
