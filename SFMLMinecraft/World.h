@@ -14,4 +14,3 @@ void generateUndergroundCave(std::vector<int>& tiles, unsigned int width, unsign
 void generateCleanTerrainWithLiquids(std::vector<int>& tiles, unsigned int width, unsigned int height);
 void generateNiceTrees(std::vector<int>& tiles, unsigned int width, unsigned int height);
 void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned int height);
-

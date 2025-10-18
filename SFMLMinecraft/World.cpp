@@ -118,7 +118,7 @@ void generateCleanTerrainWithLiquids(std::vector<int>& tiles, unsigned int width
                     else if (randomInt(0, 100) < 2 && y > surfaceY + 15) {
                         tiles[x + y * width] = TILE_GOLD_ORE;
                     }
-                    else if (randomInt(0, 100) < 1 && y > surfaceY + 20) {
+                    else if (randomInt(0, 100) < 1 && y > surfaceY + 15) {
                         tiles[x + y * width] = TILE_DIAMOND_ORE;
                     }
                     else {
@@ -190,11 +190,25 @@ void generateNiceTrees(std::vector<int>& tiles, unsigned int width, unsigned int
         }
 
         if (surfaceY > 5) {
+            // Select tree type randomly
+            int treeType = randomInt(0, 10);
+            int trunkTile;
+
+            if (treeType < 7) {
+                trunkTile = TILE_LOG;        // Normal tree %70
+            }
+            else if (treeType < 9) {
+                trunkTile = TILE_DARK_LOG;   // Dark tree %20
+            }
+            else {
+                trunkTile = TILE_WHITE_LOG;  // White tree %10
+            }
+
             int trunkHeight = randomInt(4, 6);
             for (int dy = 1; dy <= trunkHeight; ++dy) {
                 int trunkY = surfaceY - dy;
                 if (trunkY >= 0) {
-                    tiles[treeX + trunkY * width] = TILE_LOG;
+                    tiles[treeX + trunkY * width] = trunkTile;
                 }
             }
 
@@ -217,6 +231,7 @@ void generateNiceTrees(std::vector<int>& tiles, unsigned int width, unsigned int
     }
 }
 
+
 void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned int height) {
     for (unsigned int i = 0; i < 30; ++i) {
         unsigned int plantX = randomInt(2, width - 3);
@@ -232,11 +247,22 @@ void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned
         if (surfaceY > 0) {
             int plantY = surfaceY - 1;
             if (plantY >= 0 && tiles[plantX + plantY * width] == TILE_AIR) {
-                if (randomInt(0, 100) < 70) {
+                // Önce çim için %60 þans
+                if (randomInt(0, 99) < 60) {
                     tiles[plantX + plantY * width] = TILE_GRASS;
                 }
-                else {
-                    tiles[plantX + plantY * width] = (randomInt(0, 1) == 0 ? TILE_FLOWER_RED : TILE_FLOWER_YELLOW);
+                // Sonra diðer bitkiler için sýrayla kontrol
+                else if (randomInt(0, 99) < 15) {
+                    tiles[plantX + plantY * width] = TILE_FLOWER_RED;
+                }
+                else if (randomInt(0, 99) < 15) {
+                    tiles[plantX + plantY * width] = TILE_FLOWER_YELLOW;
+                }
+                else if (randomInt(0, 99) < 15) {
+                    tiles[plantX + plantY * width] = TILE_PUMPKIN;
+                }
+                else if (randomInt(0, 99) < 15) {
+                    tiles[plantX + plantY * width] = TILE_MELON;
                 }
             }
         }
