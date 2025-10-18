@@ -1,4 +1,4 @@
-#include "TileMap.h"
+﻿#include "TileMap.h"
 #include "TileID.h"
 #include <iostream>
 #include <cmath>
@@ -11,11 +11,24 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
         return false;
     }
 
-    if (!map_tileset.loadFromFile(tileset)) {
-        std::cerr << "TileMap::load -> failed to load tileset: " << tileset << "\n";
+
+    sf::Image image;
+    if (!image.loadFromFile(tileset)) {
+        std::cerr << "Failed to load: " << tileset << "\n";
         return false;
     }
 
+
+    if (!map_tileset.loadFromImage(image)) {
+        std::cerr << "Failed to load texture from processed image!\n";
+        return false;
+    }
+
+
+
+
+    // Texture'ı repeat modunda ayarla ve smooth'u kapat
+    map_tileset.setRepeated(false);
     map_tileset.setSmooth(false);
     map_tileSize = tileSize;
     map_width = width;
@@ -24,7 +37,7 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
 
     // Triangles 
     map_vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
-    map_vertices.resize(static_cast<std::size_t>(width) * height * 6); // 6 vertex = 2 Triangles
+    map_vertices.resize(static_cast<std::size_t>(width) * height * 6);
 
     for (unsigned int j = 0; j < height; ++j) {
         for (unsigned int i = 0; i < width; ++i) {
@@ -37,13 +50,17 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
 
 void TileMap::updateTileVertices(unsigned int i, unsigned int j)
 {
-    // Get the tile intex
+    // Get the tile index
     int tileNumber = map_tiles[i + j * map_width];
-    //Air
+
+    // Get vertex index
+    int vertexIndex = (i + j * map_width) * 6;
+
+    // Air tile - make completely transparent
     if (tileNumber == TILE_AIR) {
-        int vertexIndex = (i + j * map_width) * 6;
         for (int k = 0; k < 6; ++k) {
-            map_vertices[vertexIndex + k].color = sf::Color::Transparent;
+            map_vertices[vertexIndex + k].color = sf::Color(0, 0, 0, 0);
+            map_vertices[vertexIndex + k].texCoords = sf::Vector2f(0.f, 0.f);
         }
         return;
     }
@@ -51,10 +68,7 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
     int tu = tileNumber % (map_tileset.getSize().x / map_tileSize.x);
     int tv = tileNumber / (map_tileset.getSize().x / map_tileSize.x);
 
-    // Get vertex index
-    int vertexIndex = (i + j * map_width) * 6;
-
-    // Adjust vertex position ve texture coordinate 
+    // Adjust vertex position and texture coordinate 
     float left = static_cast<float>(i * map_tileSize.x);
     float right = left + static_cast<float>(map_tileSize.x);
     float top = static_cast<float>(j * map_tileSize.y);
@@ -64,6 +78,13 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
     float texRight = texLeft + static_cast<float>(map_tileSize.x);
     float texTop = static_cast<float>(tv * map_tileSize.y);
     float texBottom = texTop + static_cast<float>(map_tileSize.y);
+
+    // Texture koordinatlarını 0.5 piksel içeri alarak kenar sorunlarını önle
+    float texturePadding = 0.5f;
+    texLeft += texturePadding;
+    texRight -= texturePadding;
+    texTop += texturePadding;
+    texBottom -= texturePadding;
 
     // First triangle
     map_vertices[vertexIndex + 0].position = sf::Vector2f(left, top);
@@ -83,12 +104,13 @@ void TileMap::updateTileVertices(unsigned int i, unsigned int j)
     map_vertices[vertexIndex + 4].texCoords = sf::Vector2f(texRight, texBottom);
     map_vertices[vertexIndex + 5].texCoords = sf::Vector2f(texLeft, texBottom);
 
-    // Change the vertex color to normal
+    // Set all vertex colors to white with full opacity
     for (int k = 0; k < 6; ++k) {
         map_vertices[vertexIndex + k].color = sf::Color::White;
     }
 }
 
+// Diğer fonksiyonlar aynı kalacak...
 int TileMap::getTile(unsigned int x, unsigned int y) const
 {
     if (x >= map_width || y >= map_height) return -1;
@@ -102,10 +124,11 @@ void TileMap::setTile(unsigned int i, unsigned int j, int tile)
         updateTileVertices(i, j);
     }
 }
+
 void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     states.transform *= getTransform();
     states.texture = &map_tileset;
+    states.blendMode = sf::BlendAlpha;
     target.draw(map_vertices, states);
 }
-
