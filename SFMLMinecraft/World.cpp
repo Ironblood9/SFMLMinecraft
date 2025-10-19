@@ -1,6 +1,10 @@
 #include "World.h"
 #include "TileMap.h"
 #include "TileID.h"
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
 
 bool checkCollision(const sf::FloatRect& rect, const TileMap& map, const std::vector<int>& solidTiles) {
     unsigned int tileWidth = map.getTileSize().x;
@@ -54,7 +58,13 @@ void generateWaterPool(std::vector<int>& tiles, unsigned int width, unsigned int
             if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
                 float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2));
                 if (distance < size) {
-                    tiles[x + y * width] = TILE_WATER;
+                    int currentTile = tiles[x + y * width];
+                    if (currentTile == TILE_LAVA) {
+                        tiles[x + y * width] = TILE_OBSIDIAN;
+                    }
+                    else {
+                        tiles[x + y * width] = TILE_WATER;
+                    }
                 }
             }
         }
@@ -67,7 +77,13 @@ void generateLavaPool(std::vector<int>& tiles, unsigned int width, unsigned int 
             if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
                 float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2));
                 if (distance < size) {
-                    tiles[x + y * width] = TILE_LAVA;
+                    int currentTile = tiles[x + y * width];
+                    if (currentTile == TILE_WATER) {
+                        tiles[x + y * width] = TILE_OBSIDIAN;
+                    }
+                    else {
+                        tiles[x + y * width] = TILE_LAVA;
+                    }
                 }
             }
         }
@@ -81,6 +97,133 @@ void generateUndergroundCave(std::vector<int>& tiles, unsigned int width, unsign
                 float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2) * 1.5f);
                 if (distance < size) {
                     tiles[x + y * width] = TILE_AIR;
+                }
+            }
+        }
+    }
+}
+
+void simulateWaterFlow(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    std::vector<int> newTiles = tiles; 
+
+    for (int y = height - 1; y >= 0; --y) {
+        for (unsigned int x = 0; x < width; ++x) {
+            int index = x + y * width;
+
+            if (tiles[index] == TILE_WATER) {
+                if (y < height - 1) {
+                    int belowIndex = x + (y + 1) * width;
+                    if (tiles[belowIndex] == TILE_AIR) {
+                        newTiles[belowIndex] = TILE_WATER;
+                        newTiles[index] = TILE_AIR;
+                        continue;
+                    }
+                }
+
+                bool canFlowLeft = (x > 0) && (tiles[x - 1 + y * width] == TILE_AIR);
+                bool canFlowRight = (x < width - 1) && (tiles[x + 1 + y * width] == TILE_AIR);
+
+                if (canFlowLeft && canFlowRight) {
+                    if (randomInt(0, 1) == 0) {
+                        newTiles[x - 1 + y * width] = TILE_WATER;
+                    }
+                    else {
+                        newTiles[x + 1 + y * width] = TILE_WATER;
+                    }
+                    newTiles[index] = TILE_AIR;
+                }
+                else if (canFlowLeft) {
+                    newTiles[x - 1 + y * width] = TILE_WATER;
+                    newTiles[index] = TILE_AIR;
+                }
+                else if (canFlowRight) {
+                    newTiles[x + 1 + y * width] = TILE_WATER;
+                    newTiles[index] = TILE_AIR;
+                }
+            }
+        }
+    }
+
+    tiles = newTiles;
+}
+
+void simulateLavaFlow(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    std::vector<int> newTiles = tiles; 
+
+    for (int y = height - 1; y >= 0; --y) {
+        for (unsigned int x = 0; x < width; ++x) {
+            int index = x + y * width;
+
+            if (tiles[index] == TILE_LAVA) {
+                if (y < height - 1) {
+                    int belowIndex = x + (y + 1) * width;
+                    if (tiles[belowIndex] == TILE_AIR) {
+                        newTiles[belowIndex] = TILE_LAVA;
+                        newTiles[index] = TILE_AIR;
+                        continue;
+                    }
+                }
+
+                if (randomInt(0, 2) == 0) { 
+                    bool canFlowLeft = (x > 0) && (tiles[x - 1 + y * width] == TILE_AIR);
+                    bool canFlowRight = (x < width - 1) && (tiles[x + 1 + y * width] == TILE_AIR);
+
+                    if (canFlowLeft && canFlowRight) {
+                        if (randomInt(0, 1) == 0) {
+                            newTiles[x - 1 + y * width] = TILE_LAVA;
+                        }
+                        else {
+                            newTiles[x + 1 + y * width] = TILE_LAVA;
+                        }
+                        newTiles[index] = TILE_AIR;
+                    }
+                    else if (canFlowLeft) {
+                        newTiles[x - 1 + y * width] = TILE_LAVA;
+                        newTiles[index] = TILE_AIR;
+                    }
+                    else if (canFlowRight) {
+                        newTiles[x + 1 + y * width] = TILE_LAVA;
+                        newTiles[index] = TILE_AIR;
+                    }
+                }
+            }
+        }
+    }
+
+    tiles = newTiles;
+}
+
+void checkLiquidInteractions(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    for (unsigned int y = 0; y < height; ++y) {
+        for (unsigned int x = 0; x < width; ++x) {
+            int index = x + y * width;
+
+            if (tiles[index] == TILE_WATER) {
+                if (x > 0 && tiles[x - 1 + y * width] == TILE_LAVA) {
+                    tiles[x - 1 + y * width] = TILE_OBSIDIAN;
+                }
+                if (x < width - 1 && tiles[x + 1 + y * width] == TILE_LAVA) {
+                    tiles[x + 1 + y * width] = TILE_OBSIDIAN;
+                }
+                if (y > 0 && tiles[x + (y - 1) * width] == TILE_LAVA) {
+                    tiles[x + (y - 1) * width] = TILE_OBSIDIAN;
+                }
+                if (y < height - 1 && tiles[x + (y + 1) * width] == TILE_LAVA) {
+                    tiles[x + (y + 1) * width] = TILE_OBSIDIAN;
+                }
+            }
+            else if (tiles[index] == TILE_LAVA) {
+                if (x > 0 && tiles[x - 1 + y * width] == TILE_WATER) {
+                    tiles[index] = TILE_OBSIDIAN;
+                }
+                if (x < width - 1 && tiles[x + 1 + y * width] == TILE_WATER) {
+                    tiles[index] = TILE_OBSIDIAN;
+                }
+                if (y > 0 && tiles[x + (y - 1) * width] == TILE_WATER) {
+                    tiles[index] = TILE_OBSIDIAN;
+                }
+                if (y < height - 1 && tiles[x + (y + 1) * width] == TILE_WATER) {
+                    tiles[index] = TILE_OBSIDIAN;
                 }
             }
         }
@@ -175,6 +318,18 @@ void generateCleanTerrainWithLiquids(std::vector<int>& tiles, unsigned int width
         generateUndergroundCave(tiles, width, height, waterX, waterY, randomInt(3, 6));
         generateWaterPool(tiles, width, height, waterX, waterY, randomInt(2, 4));
     }
+
+    
+    std::cout << "Checking liquid interactions..." << std::endl;
+    checkLiquidInteractions(tiles, width, height);
+
+    
+    std::cout << "Simulating liquid flow..." << std::endl;
+    for (int i = 0; i < 10; ++i) { 
+        simulateWaterFlow(tiles, width, height);
+        simulateLavaFlow(tiles, width, height);
+        checkLiquidInteractions(tiles, width, height);
+    }
 }
 
 void generateNiceTrees(std::vector<int>& tiles, unsigned int width, unsigned int height) {
@@ -231,7 +386,6 @@ void generateNiceTrees(std::vector<int>& tiles, unsigned int width, unsigned int
     }
 }
 
-
 void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned int height) {
     for (unsigned int i = 0; i < 30; ++i) {
         unsigned int plantX = randomInt(2, width - 3);
@@ -271,4 +425,10 @@ void generateSimpleDetails(std::vector<int>& tiles, unsigned int width, unsigned
             }
         }
     }
+}
+
+void updateWorld(std::vector<int>& tiles, unsigned int width, unsigned int height) {
+    simulateWaterFlow(tiles, width, height);
+    simulateLavaFlow(tiles, width, height);
+    checkLiquidInteractions(tiles, width, height);
 }
