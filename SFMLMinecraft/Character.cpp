@@ -4,10 +4,18 @@
 Character::Character(sf::Texture& texture)
     : sprite(texture), facingRight(true) {
 
-    animations["idle"] = Animation(sf::Vector2i(64, 64), 4, 0.2f, 0);
-    animations["walk"] = Animation(sf::Vector2i(64, 64), 6, 0.1f, 1);
-    animations["attack"] = Animation(sf::Vector2i(64, 64), 6, 0.08f, 2);
-    animations["mine"] = Animation(sf::Vector2i(64, 64), 6, 0.1f, 3);
+    animations["idle"] = Animation({ 50, 90 }, 1, 0.2f, 0);
+    animations["walk"] = Animation({ 50, 90 }, 4, 0.1f, 1);
+    animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 2);
+    animations["attack1"] = Animation({ 64, 64 }, 3, 0.1f, 3);
+    animations["attack2"] = Animation({ 64, 64 }, 4, 0.08f, 4);
+    animations["attack3"] = Animation({ 64, 64 }, 4, 0.08f, 5);
+    animations["slash"] = Animation({ 64, 64 }, 3, 0.1f, 6);
+    animations["slash2"] = Animation({ 64, 64 }, 4, 0.1f, 7);
+    animations["shield"] = Animation({ 64, 64 }, 3, 0.12f, 8);
+    animations["bow"] = Animation({ 64, 64 }, 3, 0.12f, 9);
+    animations["fall"] = Animation({ 64, 64 }, 2, 0.15f, 10);
+
 
     currentAnimation = "idle";
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
