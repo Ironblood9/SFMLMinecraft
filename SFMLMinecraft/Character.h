@@ -21,11 +21,10 @@ public:
     void setPosition(float x, float y);
     void setPosition(const sf::Vector2f& position);
     void draw(sf::RenderWindow& window) const;
+    void setVelocity(const sf::Vector2f& newVelocity);
 
-    // Yeni eklenen get metodlarý
     sf::Vector2f getPosition() const;
     sf::FloatRect getGlobalBounds() const;
     sf::Vector2f getVelocity() const;
-    void setVelocity(const sf::Vector2f& newVelocity);
 };
 

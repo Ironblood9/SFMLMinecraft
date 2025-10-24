@@ -1,16 +1,13 @@
 #include "Animation.h"
 
-// Default constructor
 Animation::Animation()
     : frameSize(0, 0), currentFrame(0), totalFrames(0), animationSpeed(0.f), elapsedTime(0.f), row(0) {
 }
 
-// Asýl constructor
 Animation::Animation(sf::Vector2i frameSize, int totalFrames, float speed, int row)
     : frameSize(frameSize), currentFrame(0), totalFrames(totalFrames), animationSpeed(speed), elapsedTime(0.f), row(row) {
 }
 
-// Animasyonu güncelle
 void Animation::update(float deltaTime) {
     if (totalFrames <= 1) return;
     elapsedTime += deltaTime;

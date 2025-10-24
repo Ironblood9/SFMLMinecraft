@@ -4,7 +4,6 @@
 Character::Character(sf::Texture& texture)
     : sprite(texture), facingRight(true) {
 
-    // Animasyon satýrlarý (sprite sheet’ine göre ayarla)
     animations["idle"] = Animation(sf::Vector2i(64, 64), 4, 0.2f, 0);
     animations["walk"] = Animation(sf::Vector2i(64, 64), 6, 0.1f, 1);
     animations["attack"] = Animation(sf::Vector2i(64, 64), 6, 0.08f, 2);
@@ -28,7 +27,7 @@ void Character::handleInput() {
         velocity.x = -100.f;
         setAnimation("walk");
         facingRight = false;
-        sprite.setScale({- 1.5f, 1.5f }); // saða-sola flip
+        sprite.setScale({- 1.5f, 1.5f }); 
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         velocity.x = 100.f;
@@ -60,7 +59,6 @@ sf::Vector2f Character::getPosition() const {
     return sprite.getPosition();
 }
 
-// Character.cpp'ye bu metodlarý ekleyin:
 
 sf::Vector2f Character::getVelocity() const {
     return velocity;

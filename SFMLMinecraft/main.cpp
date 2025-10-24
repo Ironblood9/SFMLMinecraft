@@ -47,7 +47,7 @@ int main() {
 
     // Physics variables
     sf::Vector2f playerVelocity(0.f, 0.f);
-    const float moveSpeed = 300.f; // Character class'ındaki hıza uyumlu
+    const float moveSpeed = 300.f;
     const float maxSpeed = 300.f;
     const float jumpSpeed = -600.f;
     const float gravity = 1500.f;
@@ -85,10 +85,9 @@ int main() {
             }
         }
 
-        // Input handling - Character class'ı input'u kendisi yönetiyor
+        // Input handling
         character.handleInput();
 
-        // Fizik ve hareket - Character class'ı sadece animasyonu yönetiyor, fizik bizde
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
             playerVelocity.x = -moveSpeed;
         }
@@ -100,11 +99,11 @@ int main() {
             if (std::abs(playerVelocity.x) < 10.f) playerVelocity.x = 0.f;
         }
 
-        // Hız limiti
+        // Hız limit
         if (playerVelocity.x > maxSpeed) playerVelocity.x = maxSpeed;
         if (playerVelocity.x < -maxSpeed) playerVelocity.x = -maxSpeed;
 
-        // Zıplama kontrolü
+        // Jump control
         if (jumpCooldown > 0.f) {
             jumpCooldown -= deltaTime;
         }
@@ -115,15 +114,13 @@ int main() {
             jumpCooldown = 0.2f;
         }
 
-        // Yerçekimi
+        // Gravity
         if (!onGround) {
             playerVelocity.y += gravity * deltaTime;
         }
 
-        // Çarpışma kontrolü
         sf::Vector2f newPos = character.getPosition();
 
-        // Yatay çarpışma
         newPos.x += playerVelocity.x * deltaTime;
         sf::FloatRect horizontalBounds(newPos, {
             character.getGlobalBounds().size.x,
@@ -135,7 +132,6 @@ int main() {
             playerVelocity.x = 0.f;
         }
 
-        // Dikey çarpışma
         newPos.y += playerVelocity.y * deltaTime;
         sf::FloatRect verticalBounds(newPos, {
             character.getGlobalBounds().size.x,
@@ -157,10 +153,10 @@ int main() {
             onGround = false;
         }
 
-        // Pozisyonu güncelle
+        // Position update
         character.setPosition(newPos.x, newPos.y);
 
-        // Dünya sınırları
+        // World border
         unsigned int map_width = map.getWidth();
         sf::Vector2f playerPos = character.getPosition();
         if (playerPos.x < 0.f) character.setPosition(0.f, playerPos.y);
@@ -168,10 +164,10 @@ int main() {
             character.setPosition((map_width * tileSize.x) - character.getGlobalBounds().size.x, playerPos.y);
         if (playerPos.y < 0.f) character.setPosition(playerPos.x, 0.f);
 
-        // Karakteri güncelle (animasyonlar için)
+        // Character update
         character.update(deltaTime);
 
-        // Kamera takibi
+        // Camera
         sf::Vector2f cameraTarget = character.getPosition() + sf::Vector2f(
             character.getGlobalBounds().size.x / 2.f,
             character.getGlobalBounds().size.y / 2.f
@@ -181,7 +177,6 @@ int main() {
         view.setCenter(cameraPos + cameraVelocity);
         window.setView(view);
 
-        // Mouse etkileşimi (blok kırma/yerleştirme)
         sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
 
@@ -199,7 +194,6 @@ int main() {
             float distY = std::abs((mY * tileSize.y + tileSize.y / 2.f) -
                 (character.getPosition().y + character.getGlobalBounds().size.y / 2.f));
 
-            // Blok kırma
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
                 if (distX > tileSize.x * 2.0f || distY > tileSize.y * 2.0f) {
                     map.setTile(static_cast<unsigned int>(mX),
@@ -207,7 +201,6 @@ int main() {
                 }
             }
 
-            // Blok yerleştirme
             else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
                 if (distX > tileSize.x * 2.0f || distY > tileSize.y * 2.0f) {
                     int currentTile = map.getTile(static_cast<unsigned int>(mX),
@@ -221,10 +214,9 @@ int main() {
             }
         }
 
-        // Çizim
         window.clear(sf::Color(120, 180, 240));
         window.draw(map);
-        character.draw(window); // Yeni karakter çizimi
+        character.draw(window); 
         window.draw(selectionBox);
         window.display();
     }
