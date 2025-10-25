@@ -5,7 +5,7 @@ Character::Character(sf::Texture& texture)
     : sprite(texture), facingRight(true) {
 
     animations["idle"] = Animation({ 50, 90 }, 1, 0.2f, 0);
-    animations["walk"] = Animation({ 50, 90 }, 4, 0.1f, 1);
+    animations["walk"] = Animation({ 64, 64 }, 4, 0.1f, 1);
     animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 2);
     animations["attack1"] = Animation({ 64, 64 }, 3, 0.1f, 3);
     animations["attack2"] = Animation({ 64, 64 }, 4, 0.08f, 4);
