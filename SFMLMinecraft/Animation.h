@@ -11,7 +11,7 @@ private:
     int row;
 
 public:
-    Animation(); 
+    Animation();
     Animation(sf::Vector2i frameSize, int totalFrames, float speed, int row = 0);
 
     void update(float deltaTime);
@@ -24,5 +24,3 @@ public:
     void setSpeed(float speed);
     float getSpeed() const;
 };
-
-

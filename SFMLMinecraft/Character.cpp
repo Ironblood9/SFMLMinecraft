@@ -4,7 +4,7 @@
 Character::Character(sf::Texture& texture)
     : sprite(texture), facingRight(true) {
 
-    animations["idle"] = Animation({ 50, 90 }, 1, 0.2f, 0);
+    animations["idle"] = Animation({ 64, 64 }, 1, 0.2f, 0);
     animations["walk"] = Animation({ 64, 64 }, 4, 0.1f, 1);
     animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 2);
     animations["attack1"] = Animation({ 64, 64 }, 3, 0.1f, 3);
@@ -35,7 +35,7 @@ void Character::handleInput() {
         velocity.x = -100.f;
         setAnimation("walk");
         facingRight = false;
-        sprite.setScale({- 1.5f, 1.5f }); 
+        sprite.setScale({ -1.5f, 1.5f });
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         velocity.x = 100.f;
@@ -83,5 +83,3 @@ sf::FloatRect Character::getGlobalBounds() const {
 void Character::setPosition(const sf::Vector2f& position) {
     sprite.setPosition(position);
 }
-
-

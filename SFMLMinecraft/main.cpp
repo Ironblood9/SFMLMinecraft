@@ -216,7 +216,7 @@ int main() {
 
         window.clear(sf::Color(120, 180, 240));
         window.draw(map);
-        character.draw(window); 
+        character.draw(window);
         window.draw(selectionBox);
         window.display();
     }

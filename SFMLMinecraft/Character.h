@@ -27,4 +27,3 @@ public:
     sf::FloatRect getGlobalBounds() const;
     sf::Vector2f getVelocity() const;
 };
-
