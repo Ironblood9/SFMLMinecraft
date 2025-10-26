@@ -25,9 +25,8 @@ int main() {
     std::cout << "World generation complete!" << std::endl;
     std::cout << "Features: Diamond ore (rare), Water pools, Lava pools underground" << std::endl;
 
-    // Load character texture (artık sprite sheet kullanıyoruz)
     sf::Texture characterTexture;
-    if (!characterTexture.loadFromFile("assets/character_sheet.png")) { // player.png yerine character_sheet.png
+    if (!characterTexture.loadFromFile("assets/character_sheet.png")) { 
         std::cerr << "Failed to load character_sheet.png!" << std::endl;
         return -1;
     }

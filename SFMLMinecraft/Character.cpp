@@ -6,7 +6,7 @@ Character::Character(sf::Texture& texture)
 
     animations["idle"] = Animation({ 64, 64 }, 1, 0.2f, 0);
     animations["walk"] = Animation({ 64, 64 }, 4, 0.1f, 1);
-    animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 2);
+    animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 1);
     animations["attack1"] = Animation({ 64, 64 }, 3, 0.1f, 3);
     animations["attack2"] = Animation({ 64, 64 }, 4, 0.08f, 4);
     animations["attack3"] = Animation({ 64, 64 }, 4, 0.08f, 5);
@@ -40,6 +40,12 @@ void Character::handleInput() {
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         velocity.x = 100.f;
         setAnimation("walk");
+        facingRight = true;
+        sprite.setScale({ 1.5f, 1.5f });
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+        velocity.x = 100.f;
+        setAnimation("jump");
         facingRight = true;
         sprite.setScale({ 1.5f, 1.5f });
     }
