@@ -1,6 +1,5 @@
 #include "Character.h"
 
-
 Character::Character(sf::Texture& texture)
     : sprite(texture), facingRight(true) {
 
@@ -16,16 +15,39 @@ Character::Character(sf::Texture& texture)
     animations["bow"] = Animation({ 64, 64 }, 3, 0.12f, 9);
     animations["fall"] = Animation({ 64, 64 }, 2, 0.15f, 10);
 
-
     currentAnimation = "idle";
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
     sprite.setScale({ 1.5f, 1.5f });
+
+    // SFML 3'te hitbox doðrudan position ve size ile oluþturuluyor
+    hitbox = sf::FloatRect({ 0.f, 0.f }, { 46.f, 46.f });
+    updateHitbox();
 }
 
 void Character::update(float deltaTime) {
+    previousPosition = sprite.getPosition();
+
     animations[currentAnimation].update(deltaTime);
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
     sprite.move(velocity * deltaTime);
+
+    updateHitbox();
+}
+
+void Character::updateHitbox() {
+    sf::FloatRect spriteBounds = sprite.getGlobalBounds();
+    float hitboxX = spriteBounds.position.x + (spriteBounds.size.x - hitbox.size.x) / 2;
+    float hitboxY = spriteBounds.position.y + (spriteBounds.size.y - hitbox.size.y) / 2;
+    hitbox.position = sf::Vector2f(hitboxX, hitboxY);
+}
+
+void Character::revertPosition() {
+    sprite.setPosition(previousPosition);
+    updateHitbox();
+}
+
+const sf::FloatRect& Character::getHitbox() const {
+    return hitbox;
 }
 
 void Character::handleInput() {
@@ -34,20 +56,23 @@ void Character::handleInput() {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
         velocity.x = -100.f;
         setAnimation("walk");
-        facingRight = false;
-        sprite.setScale({ -1.5f, 1.5f });
+
+        if (facingRight) {
+            facingRight = false;
+            sprite.setScale({ -1.5f, 1.5f });
+        }
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         velocity.x = 100.f;
         setAnimation("walk");
-        facingRight = true;
-        sprite.setScale({ 1.5f, 1.5f });
+
+        if (!facingRight) {
+            facingRight = true;
+            sprite.setScale({ 1.5f, 1.5f });
+        }
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
-        velocity.x = 100.f;
         setAnimation("jump");
-        facingRight = true;
-        sprite.setScale({ 1.5f, 1.5f });
     }
     else {
         setAnimation("idle");
@@ -63,6 +88,7 @@ void Character::setAnimation(const std::string& animName) {
 
 void Character::setPosition(float x, float y) {
     sprite.setPosition({ x, y });
+    updateHitbox();
 }
 
 void Character::draw(sf::RenderWindow& window) const {
@@ -72,7 +98,6 @@ void Character::draw(sf::RenderWindow& window) const {
 sf::Vector2f Character::getPosition() const {
     return sprite.getPosition();
 }
-
 
 sf::Vector2f Character::getVelocity() const {
     return velocity;
@@ -88,4 +113,5 @@ sf::FloatRect Character::getGlobalBounds() const {
 
 void Character::setPosition(const sf::Vector2f& position) {
     sprite.setPosition(position);
+    updateHitbox();
 }

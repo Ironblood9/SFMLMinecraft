@@ -44,3 +44,4 @@ enum TileID {
     TILE_LAVA=210,
     TILE_COUNT        // Total tile count
 };
+

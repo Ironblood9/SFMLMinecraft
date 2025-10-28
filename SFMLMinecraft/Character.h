@@ -11,6 +11,8 @@ private:
     std::string currentAnimation;
     sf::Vector2f velocity;
     bool facingRight;
+    sf::FloatRect hitbox;
+    sf::Vector2f previousPosition;
 
 public:
     Character(sf::Texture& texture);
@@ -23,7 +25,12 @@ public:
     void draw(sf::RenderWindow& window) const;
     void setVelocity(const sf::Vector2f& newVelocity);
 
+    void updateHitbox();
+    void revertPosition();
+    const sf::FloatRect& getHitbox() const;
+
     sf::Vector2f getPosition() const;
     sf::FloatRect getGlobalBounds() const;
     sf::Vector2f getVelocity() const;
+    bool isFacingRight() const { return facingRight; }
 };
