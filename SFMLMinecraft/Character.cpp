@@ -19,9 +19,12 @@ Character::Character(sf::Texture& texture)
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
     sprite.setScale({ 1.5f, 1.5f });
 
-    // SFML 3'te hitbox doðrudan position ve size ile oluþturuluyor
+    updateOrigin();
+
+    // SFML 3'te doðru hitbox oluþturma
     hitbox = sf::FloatRect({ 0.f, 0.f }, { 46.f, 46.f });
     updateHitbox();
+
 }
 
 void Character::update(float deltaTime) {
@@ -36,8 +39,11 @@ void Character::update(float deltaTime) {
 
 void Character::updateHitbox() {
     sf::FloatRect spriteBounds = sprite.getGlobalBounds();
+
+    // SFML 3'te doðru pozisyon atamasý
     float hitboxX = spriteBounds.position.x + (spriteBounds.size.x - hitbox.size.x) / 2;
     float hitboxY = spriteBounds.position.y + (spriteBounds.size.y - hitbox.size.y) / 2;
+
     hitbox.position = sf::Vector2f(hitboxX, hitboxY);
 }
 
@@ -60,6 +66,7 @@ void Character::handleInput() {
         if (facingRight) {
             facingRight = false;
             sprite.setScale({ -1.5f, 1.5f });
+            updateOrigin();
         }
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
@@ -114,4 +121,10 @@ sf::FloatRect Character::getGlobalBounds() const {
 void Character::setPosition(const sf::Vector2f& position) {
     sprite.setPosition(position);
     updateHitbox();
+}
+
+
+void Character::updateOrigin() {
+    sf::FloatRect bounds = sprite.getLocalBounds();
+    sprite.setOrigin({ bounds.size.x / 2, bounds.size.y / 2 }); // Merkeze origin
 }

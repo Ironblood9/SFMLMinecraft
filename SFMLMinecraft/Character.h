@@ -13,7 +13,7 @@ private:
     bool facingRight;
     sf::FloatRect hitbox;
     sf::Vector2f previousPosition;
-
+    void updateOrigin();
 public:
     Character(sf::Texture& texture);
 
