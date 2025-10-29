@@ -23,7 +23,6 @@ bool checkHitboxCollision(const sf::FloatRect& hitbox, const TileMap& map, const
                 int tileID = map.getTile(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
 
                 if (std::find(solidTiles.begin(), solidTiles.end(), tileID) != solidTiles.end()) {
-                    // SFML 3'te tileRect oluşturma
                     sf::FloatRect tileRect(
                         sf::Vector2f(static_cast<float>(x * 46), static_cast<float>(y * 46)),
                         sf::Vector2f(46.f, 46.f)
@@ -39,25 +38,40 @@ bool checkHitboxCollision(const sf::FloatRect& hitbox, const TileMap& map, const
     return false;
 }
 
-// SFML 3 uyumlu çarpışma çözüm fonksiyonu
-void resolveCollision(Character& character, const TileMap& map, const std::vector<int>& solidTiles) {
+// Gelişmiş çarpışma çözümü
+void resolveCharacterCollision(Character& character, const TileMap& map, const std::vector<int>& solidTiles) {
     sf::FloatRect hitbox = character.getHitbox();
 
-    // X ekseninde çarpışma kontrolü
-    sf::FloatRect futureXHitbox = hitbox;
-    futureXHitbox.position.x += character.getVelocity().x * 0.016f;
+    // Yatay çarpışma kontrolü
+    sf::Vector2f horizontalMove(character.getVelocity().x * 0.016f, 0.f);
+    sf::FloatRect horizontalTest = hitbox;
+    horizontalTest.position.x += horizontalMove.x;
 
-    if (checkHitboxCollision(futureXHitbox, map, solidTiles)) {
+    if (checkHitboxCollision(horizontalTest, map, solidTiles)) {
         character.setVelocity(sf::Vector2f(0.f, character.getVelocity().y));
     }
 
-    // Y ekseninde çarpışma kontrolü
-    sf::FloatRect futureYHitbox = hitbox;
-    futureYHitbox.position.y += character.getVelocity().y * 0.016f;
+    // Dikey çarpışma kontrolü
+    sf::Vector2f verticalMove(0.f, character.getVelocity().y * 0.016f);
+    sf::FloatRect verticalTest = hitbox;
+    verticalTest.position.y += verticalMove.y;
 
-    if (checkHitboxCollision(futureYHitbox, map, solidTiles)) {
+    if (checkHitboxCollision(verticalTest, map, solidTiles)) {
+        // Aşağı doğru çarpışma (zemine değme)
+        if (character.getVelocity().y > 0) {
+            character.setOnGround(true);
+        }
         character.setVelocity(sf::Vector2f(character.getVelocity().x, 0.f));
     }
+}
+
+// Zemin kontrolü için özel fonksiyon
+bool checkGroundCollision(const Character& character, const TileMap& map, const std::vector<int>& solidTiles) {
+    sf::FloatRect hitbox = character.getHitbox();
+    sf::FloatRect groundCheck = hitbox;
+    groundCheck.position.y += 2.f; // Hitbox'ın hemen altını kontrol et
+
+    return checkHitboxCollision(groundCheck, map, solidTiles);
 }
 
 // SFML 3 uyumlu hitbox görselleştirme
@@ -94,7 +108,8 @@ int main() {
     }
 
     Character character(characterTexture);
-    character.setPosition(150.f, 30.f);
+    // Karakteri zemine yerleştir
+    character.setPosition(150.f, 100.f);
 
     TileMap map;
     if (!map.load("assets/tileset.png", tileSize, tiles, width, height)) {
@@ -103,16 +118,6 @@ int main() {
     }
 
     sf::View view(window.getDefaultView());
-
-    sf::Vector2f playerVelocity(0.f, 0.f);
-    const float moveSpeed = 300.f;
-    const float maxSpeed = 300.f;
-    const float jumpSpeed = -600.f;
-    const float gravity = 1500.f;
-    const float friction = 0.88f;
-
-    bool onGround = false;
-    float jumpCooldown = 0.f;
 
     std::vector<int> solidTiles = {
         TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_PLANKS, TILE_BRICKS,
@@ -142,79 +147,42 @@ int main() {
             }
         }
 
-        // Input handling
+        // Input handling - Character sınıfı içinde
         character.handleInput();
 
-        // Fizik hesaplamaları
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-            playerVelocity.x = -moveSpeed;
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-            playerVelocity.x = moveSpeed;
+        // Character update - yer çekimi ve hareket dahil
+        character.update(deltaTime);
+
+        // Çarpışma çözümü
+        resolveCharacterCollision(character, map, solidTiles);
+
+        // Zemin kontrolü
+        if (checkGroundCollision(character, map, solidTiles)) {
+            character.setOnGround(true);
         }
         else {
-            playerVelocity.x *= friction;
-            if (std::abs(playerVelocity.x) < 10.f) playerVelocity.x = 0.f;
+            character.setOnGround(false);
         }
 
-        // Hız limit
-        if (playerVelocity.x > maxSpeed) playerVelocity.x = maxSpeed;
-        if (playerVelocity.x < -maxSpeed) playerVelocity.x = -maxSpeed;
-
-        // Zıplama kontrolü
-        if (jumpCooldown > 0.f) {
-            jumpCooldown -= deltaTime;
-        }
-
-        if (onGround && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && jumpCooldown <= 0.f) {
-            playerVelocity.y = jumpSpeed;
-            onGround = false;
-            jumpCooldown = 0.2f;
-            character.setAnimation("jump");
-        }
-
-        // Yerçekimi
-        if (!onGround) {
-            playerVelocity.y += gravity * deltaTime;
-        }
-
-        // Character velocity'i güncelle
-        character.setVelocity(playerVelocity);
-
-        // Çarpışma kontrolü ve çözümü
-        resolveCollision(character, map, solidTiles);
-
-        // Pozisyon güncelleme
-        sf::Vector2f newPos = character.getPosition();
-        newPos += character.getVelocity() * deltaTime;
-
-        // Hitbox çarpışma kontrolü
-        character.setPosition(newPos);
+        // Çarpışma kontrolü - son çare olarak
         if (checkHitboxCollision(character.getHitbox(), map, solidTiles)) {
             character.revertPosition();
-
-            // Yerde mi kontrol et
-            sf::FloatRect groundCheck = character.getHitbox();
-            groundCheck.position.y += 2.f;
-            if (!checkHitboxCollision(groundCheck, map, solidTiles)) {
-                onGround = false;
-            }
-            else {
-                onGround = true;
-                playerVelocity.y = 0.f;
-            }
         }
 
         // Dünya sınırları
         unsigned int map_width = map.getWidth();
+        unsigned int map_height = map.getHeight();
         sf::Vector2f playerPos = character.getPosition();
-        if (playerPos.x < 0.f) character.setPosition(0.f, playerPos.y);
-        if (playerPos.x > (map_width * tileSize.x) - character.getGlobalBounds().size.x)
-            character.setPosition((map_width * tileSize.x) - character.getGlobalBounds().size.x, playerPos.y);
-        if (playerPos.y < 0.f) character.setPosition(playerPos.x, 0.f);
+        sf::FloatRect playerBounds = character.getGlobalBounds();
 
-        // Character update
-        character.update(deltaTime);
+        if (playerPos.x < 0.f) character.setPosition(0.f, playerPos.y);
+        if (playerPos.x > (map_width * tileSize.x) - playerBounds.size.x)
+            character.setPosition((map_width * tileSize.x) - playerBounds.size.x, playerPos.y);
+        if (playerPos.y < 0.f) character.setPosition(playerPos.x, 0.f);
+        if (playerPos.y > (map_height * tileSize.y) - playerBounds.size.y) {
+            character.setPosition(playerPos.x, (map_height * tileSize.y) - playerBounds.size.y);
+            character.setOnGround(true);
+        }
 
         // Kamera
         sf::Vector2f cameraTarget = character.getPosition() + sf::Vector2f(

@@ -1,36 +1,49 @@
-#pragma once
+
 #include <SFML/Graphics.hpp>
-#include <map>
 #include <string>
+#include <unordered_map>
 #include "Animation.h"
 
 class Character {
-private:
-    sf::Sprite sprite;
-    std::map<std::string, Animation> animations;
-    std::string currentAnimation;
-    sf::Vector2f velocity;
-    bool facingRight;
-    sf::FloatRect hitbox;
-    sf::Vector2f previousPosition;
-    void updateOrigin();
 public:
     Character(sf::Texture& texture);
-
     void update(float deltaTime);
     void handleInput();
-    void setAnimation(const std::string& animName);
+    void draw(sf::RenderWindow& window) const;
     void setPosition(float x, float y);
     void setPosition(const sf::Vector2f& position);
-    void draw(sf::RenderWindow& window) const;
-    void setVelocity(const sf::Vector2f& newVelocity);
-
-    void updateHitbox();
-    void revertPosition();
-    const sf::FloatRect& getHitbox() const;
-
     sf::Vector2f getPosition() const;
-    sf::FloatRect getGlobalBounds() const;
+    void setVelocity(const sf::Vector2f& newVelocity);
     sf::Vector2f getVelocity() const;
-    bool isFacingRight() const { return facingRight; }
+    sf::FloatRect getGlobalBounds() const;
+    const sf::FloatRect& getHitbox() const;
+    void revertPosition();
+    void setOnGround(bool onGround);
+    bool getIsOnGround() const;
+
+private:
+    void updateHitbox();
+    void updateAnimationState();
+    void applyGravity(float deltaTime);
+    void jump();
+    void setAnimation(const std::string& animName);
+    void updateOrigin();
+
+    sf::Sprite sprite;
+    std::unordered_map<std::string, Animation> animations;
+    std::string currentAnimation;
+    bool facingRight;
+    sf::Vector2f velocity;
+    sf::Vector2f previousPosition;
+    sf::FloatRect hitbox;
+
+    // Fizik deðiþkenleri
+    bool isOnGround;
+    bool isJumping;
+    float gravity;
+    float jumpVelocity;
+    float maxFallSpeed;
+    const float moveSpeed = 300.f;
+    const float friction = 0.88f;
 };
+
