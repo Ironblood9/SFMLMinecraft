@@ -8,7 +8,6 @@
 #include <cmath>
 #include <algorithm>
 
-// SFML 3 uyumlu çarpışma kontrol fonksiyonu
 bool checkHitboxCollision(const sf::FloatRect& hitbox, const TileMap& map, const std::vector<int>& solidTiles) {
     int leftTile = static_cast<int>(hitbox.position.x / 46.f);
     int rightTile = static_cast<int>((hitbox.position.x + hitbox.size.x) / 46.f);
@@ -38,11 +37,10 @@ bool checkHitboxCollision(const sf::FloatRect& hitbox, const TileMap& map, const
     return false;
 }
 
-// Gelişmiş çarpışma çözümü
 void resolveCharacterCollision(Character& character, const TileMap& map, const std::vector<int>& solidTiles) {
     sf::FloatRect hitbox = character.getHitbox();
 
-    // Yatay çarpışma kontrolü
+    // vertical collision
     sf::Vector2f horizontalMove(character.getVelocity().x * 0.016f, 0.f);
     sf::FloatRect horizontalTest = hitbox;
     horizontalTest.position.x += horizontalMove.x;
@@ -51,13 +49,13 @@ void resolveCharacterCollision(Character& character, const TileMap& map, const s
         character.setVelocity(sf::Vector2f(0.f, character.getVelocity().y));
     }
 
-    // Dikey çarpışma kontrolü
+    // Horizontal collision
     sf::Vector2f verticalMove(0.f, character.getVelocity().y * 0.016f);
     sf::FloatRect verticalTest = hitbox;
     verticalTest.position.y += verticalMove.y;
 
     if (checkHitboxCollision(verticalTest, map, solidTiles)) {
-        // Aşağı doğru çarpışma (zemine değme)
+        // Ground collision
         if (character.getVelocity().y > 0) {
             character.setOnGround(true);
         }
@@ -65,16 +63,15 @@ void resolveCharacterCollision(Character& character, const TileMap& map, const s
     }
 }
 
-// Zemin kontrolü için özel fonksiyon
+
 bool checkGroundCollision(const Character& character, const TileMap& map, const std::vector<int>& solidTiles) {
     sf::FloatRect hitbox = character.getHitbox();
-    sf::FloatRect groundCheck = hitbox;
-    groundCheck.position.y += 2.f; // Hitbox'ın hemen altını kontrol et
+    sf::FloatRect groundCheck = hitbox; //check under the hitbox
+    groundCheck.position.y += 2.f; 
 
     return checkHitboxCollision(groundCheck, map, solidTiles);
 }
 
-// SFML 3 uyumlu hitbox görselleştirme
 void drawHitbox(sf::RenderWindow& window, const Character& character) {
     sf::RectangleShape hitboxVisual;
     hitboxVisual.setSize(character.getHitbox().size);
@@ -108,7 +105,6 @@ int main() {
     }
 
     Character character(characterTexture);
-    // Karakteri zemine yerleştir
     character.setPosition(150.f, 100.f);
 
     TileMap map;
@@ -147,16 +143,16 @@ int main() {
             }
         }
 
-        // Input handling - Character sınıfı içinde
+        // Input handling 
         character.handleInput();
 
-        // Character update - yer çekimi ve hareket dahil
+        // Character update 
         character.update(deltaTime);
 
-        // Çarpışma çözümü
+        // Collision resolve 
         resolveCharacterCollision(character, map, solidTiles);
 
-        // Zemin kontrolü
+        // Ground checking
         if (checkGroundCollision(character, map, solidTiles)) {
             character.setOnGround(true);
         }
@@ -164,12 +160,12 @@ int main() {
             character.setOnGround(false);
         }
 
-        // Çarpışma kontrolü - son çare olarak
+        // Collision checking
         if (checkHitboxCollision(character.getHitbox(), map, solidTiles)) {
             character.revertPosition();
         }
 
-        // Dünya sınırları
+        // World border
         unsigned int map_width = map.getWidth();
         unsigned int map_height = map.getHeight();
         sf::Vector2f playerPos = character.getPosition();
@@ -184,7 +180,7 @@ int main() {
             character.setOnGround(true);
         }
 
-        // Kamera
+        // Camera
         sf::Vector2f cameraTarget = character.getPosition() + sf::Vector2f(
             character.getGlobalBounds().size.x / 2.f,
             character.getGlobalBounds().size.y / 2.f
@@ -194,7 +190,7 @@ int main() {
         view.setCenter(cameraPos + cameraVelocity);
         window.setView(view);
 
-        // Fare konumu
+        // Mause position
         sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
 
@@ -235,7 +231,7 @@ int main() {
         window.clear(sf::Color(120, 180, 240));
         window.draw(map);
         character.draw(window);
-        drawHitbox(window, character); // Debug için hitbox çiz
+        drawHitbox(window, character); 
         window.draw(selectionBox);
         window.display();
     }

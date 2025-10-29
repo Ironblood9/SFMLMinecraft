@@ -23,8 +23,8 @@ Character::Character(sf::Texture& texture)
     currentAnimation = "idle";
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
     sprite.setScale({ 1.5f, 1.5f });
+    //Origin
     updateOrigin();
-    // Hitbox boyutunu sprite'a göre ayarla
     sf::FloatRect spriteBounds = sprite.getLocalBounds();
     hitbox = sf::FloatRect({ 0.f, 0.f }, { spriteBounds.size.x * 0.7f, spriteBounds.size.y * 0.9f });
     updateHitbox();
@@ -33,21 +33,21 @@ Character::Character(sf::Texture& texture)
 void Character::update(float deltaTime) {
     previousPosition = sprite.getPosition();
 
-    // Yer çekimi uygula (eðer yerde deðilse)
+    // Gravity
     if (!isOnGround) {
         applyGravity(deltaTime);
     }
 
-    // Sürtünme uygula (yatay eksende)
+    //Friction
     if (isOnGround) {
         velocity.x *= friction;
         if (std::abs(velocity.x) < 10.f) velocity.x = 0.f;
     }
 
-    // Hareketi uygula
+    // Move
     sprite.move(velocity * deltaTime);
 
-    // Animasyonu güncelle
+    // Animation
     animations[currentAnimation].update(deltaTime);
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
 
@@ -58,7 +58,7 @@ void Character::update(float deltaTime) {
 void Character::applyGravity(float deltaTime) {
     velocity.y += gravity * deltaTime;
 
-    // Maksimum düþüþ hýzýný sýnýrla
+    // Max fall speed
     if (velocity.y > maxFallSpeed) {
         velocity.y = maxFallSpeed;
     }
@@ -75,10 +75,10 @@ void Character::jump() {
 void Character::updateAnimationState() {
     if (!isOnGround) {
         if (velocity.y < 0) {
-            setAnimation("jump"); // Yukarý zýplýyor
+            setAnimation("jump"); 
         }
         else {
-            setAnimation("fall"); // Aþaðý düþüyor
+            setAnimation("fall"); 
         }
     }
     else {
@@ -92,7 +92,7 @@ void Character::updateAnimationState() {
 }
 
 void Character::handleInput() {
-    // Yatay hareket
+    // Right
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
         velocity.x = -moveSpeed;
 
@@ -102,6 +102,7 @@ void Character::handleInput() {
             updateOrigin();
         }
     }
+    //Left
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         velocity.x = moveSpeed;
 
@@ -111,21 +112,21 @@ void Character::handleInput() {
         }
     }
 
-    // Zýplama
+    // Jump
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround) {
         jump();
     }
 }
 
+//Origin!!!
 void Character::updateOrigin() {
     sf::FloatRect bounds = sprite.getLocalBounds();
-    sprite.setOrigin({ bounds.size.x / 2, bounds.size.y / 2 }); // Merkeze origin
+    sprite.setOrigin({ bounds.size.x / 2, bounds.size.y / 2 }); 
 }
 
 void Character::updateHitbox() {
     sf::FloatRect spriteBounds = sprite.getGlobalBounds();
 
-    // Hitbox'ý sprite'ýn ALT kýsmýna hizala - BU KRÝTÝK DEÐÝÞÝKLÝK
     float hitboxX = spriteBounds.position.x + (spriteBounds.size.x - hitbox.size.x) / 2;
     float hitboxY = spriteBounds.position.y + spriteBounds.size.y - hitbox.size.y;
 
@@ -141,7 +142,7 @@ void Character::setOnGround(bool onGround) {
     isOnGround = onGround;
     if (onGround) {
         isJumping = false;
-        velocity.y = 0; // Yere deðdiðinde dikey hýzý sýfýrla
+        velocity.y = 0; 
     }
 }
 

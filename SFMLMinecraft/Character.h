@@ -37,7 +37,6 @@ private:
     sf::Vector2f previousPosition;
     sf::FloatRect hitbox;
 
-    // Fizik deðiþkenleri
     bool isOnGround;
     bool isJumping;
     float gravity;
