@@ -24,8 +24,9 @@ public:
     bool getIsOnGround() const;
     void revertPosition();
 
-    void usePickaxe();
-    bool isUsingPickaxe() const;
+    void startMining();
+    void stopMining();
+    bool isMining() const;
     bool isPickaxeAnimationComplete() const;
     void resetPickaxeAnimation();
 
@@ -55,7 +56,7 @@ private:
     float maxFallSpeed;
 
     // Animations
-    bool usingPickaxe = false;
+    bool mining = false; // for pickaxe
     float pickaxeAnimationTimer = 0.0f;
 
     // Constants
@@ -63,4 +64,3 @@ private:
     static constexpr float friction = 0.85f;
     static constexpr float PICKAXE_ANIMATION_DURATION = 1.0f; 
 };
-

@@ -23,7 +23,6 @@ Character::Character(sf::Texture& texture)
     currentAnimation = "idle";
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
     sprite.setScale({ 1.5f, 1.5f });
-    //Origin
     updateOrigin();
     sf::FloatRect spriteBounds = sprite.getLocalBounds();
     hitbox = sf::FloatRect({ 0.f, 0.f }, { spriteBounds.size.x * 0.7f, spriteBounds.size.y * 0.9f });
@@ -33,12 +32,19 @@ Character::Character(sf::Texture& texture)
 void Character::update(float deltaTime) {
     previousPosition = sprite.getPosition();
 
-    // Pickaxe animasyonu
-    if (usingPickaxe) {
+    // Pickaxe animation
+    if (mining ) {
         pickaxeAnimationTimer += deltaTime;
+
+        // Animasyon cycle
         if (pickaxeAnimationTimer >= PICKAXE_ANIMATION_DURATION) {
-            usingPickaxe = false;
-            pickaxeAnimationTimer = 0.0f;
+            if (mining) {
+                pickaxeAnimationTimer = 0.0f;
+                animations["pickaxe"].reset();
+            }
+            else {
+                pickaxeAnimationTimer = 0.0f;
+            }
         }
     }
 
@@ -47,9 +53,9 @@ void Character::update(float deltaTime) {
         applyGravity(deltaTime);
     }
 
-    // Friction - Pickaxe kullanýrken de sürtünme olsun ama daha az
+    // Friction 
     if (isOnGround) {
-        float currentFriction = usingPickaxe ? friction * 0.7f : friction;
+        float currentFriction = (mining) ? friction * 0.8f : friction;
         velocity.x *= currentFriction;
         if (std::abs(velocity.x) < 10.f) velocity.x = 0.f;
     }
@@ -75,7 +81,7 @@ void Character::applyGravity(float deltaTime) {
 }
 
 void Character::jump() {
-    if (isOnGround) {
+    if (isOnGround && !mining) { 
         velocity.y = jumpVelocity;
         isOnGround = false;
         isJumping = true;
@@ -84,7 +90,7 @@ void Character::jump() {
 
 void Character::updateAnimationState()
 {
-    if (usingPickaxe) {
+    if (mining) {
         setAnimation("pickaxe");
         return;
     }
@@ -109,10 +115,8 @@ void Character::updateAnimationState()
 
 void Character::handleInput()
 {
-    // Pickaxe kullanýrken de hareket edebilir ama daha yavaþ
-    float currentMoveSpeed = usingPickaxe ? moveSpeed * 0.5f : moveSpeed;
+    float currentMoveSpeed = mining ? moveSpeed * 0.6f : moveSpeed;
 
-    // Right
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
         velocity.x = -currentMoveSpeed;
 
@@ -122,7 +126,6 @@ void Character::handleInput()
             updateOrigin();
         }
     }
-    // Left
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         velocity.x = currentMoveSpeed;
 
@@ -132,32 +135,37 @@ void Character::handleInput()
         }
     }
 
-    // Jump - Pickaxe kullanýrken zýplayamaz
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround && !usingPickaxe) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround && !mining) {
         jump();
     }
-
 }
 
-void Character::usePickaxe() {
-    usingPickaxe = true;
-    pickaxeAnimationTimer = 0.0f;
-    setAnimation("pickaxe");
-    animations["pickaxe"].reset();
+void Character::startMining() {
+    if (!mining) {
+        mining = true;
+        pickaxeAnimationTimer = 0.0f;
+        setAnimation("pickaxe");
+        animations["pickaxe"].reset();
+    }
 }
 
-bool Character::isUsingPickaxe() const {
-    return usingPickaxe;
+void Character::stopMining() {
+    mining = false;
+}
+
+bool Character::isMining() const {
+    return mining;
 }
 
 bool Character::isPickaxeAnimationComplete() const {
-    return usingPickaxe && pickaxeAnimationTimer >= PICKAXE_ANIMATION_DURATION;
+    return pickaxeAnimationTimer >= PICKAXE_ANIMATION_DURATION;
 }
 
 void Character::resetPickaxeAnimation() {
-    usingPickaxe = false;
+    mining = false;
     pickaxeAnimationTimer = 0.0f;
 }
+
 
 
 //Origin!!!

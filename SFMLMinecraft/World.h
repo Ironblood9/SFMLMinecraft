@@ -5,7 +5,6 @@
 #include "TileMap.h"
 #include "TileID.h"
 
-bool checkCollision(const sf::FloatRect& rect, const TileMap& map, const std::vector<int>& solidTiles);
 bool rectIntersects(const sf::FloatRect& rect1, const sf::FloatRect& rect2);
 int  randomInt(int min, int max);
 void generateWaterPool(std::vector<int>& tiles, unsigned int width, unsigned int height, int centerX, int centerY, int size);

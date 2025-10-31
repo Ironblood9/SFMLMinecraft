@@ -6,39 +6,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-bool checkCollision(const sf::FloatRect& rect, const TileMap& map, const std::vector<int>& solidTiles) {
-    unsigned int tileWidth = map.getTileSize().x;
-    unsigned int tileHeight = map.getTileSize().y;
-    unsigned int map_width = map.getWidth();
-    unsigned int map_height = map.getHeight();
-
-    int leftTile = static_cast<int>(rect.position.x / static_cast<float>(tileWidth));
-    int rightTile = static_cast<int>((rect.position.x + rect.size.x - 1.f) / static_cast<float>(tileWidth));
-    int topTile = static_cast<int>(rect.position.y / static_cast<float>(tileHeight));
-    int bottomTile = static_cast<int>((rect.position.y + rect.size.y - 1.f) / static_cast<float>(tileHeight));
-
-    leftTile = std::max(0, leftTile);
-    rightTile = std::min(static_cast<int>(map_width) - 1, rightTile);
-    topTile = std::max(0, topTile);
-    bottomTile = std::min(static_cast<int>(map_height) - 1, bottomTile);
-
-    if (rightTile < 0 || leftTile > static_cast<int>(map_width) - 1 ||
-        bottomTile < 0 || topTile > static_cast<int>(map_height) - 1) {
-        return false;
-    }
-
-    for (int y = topTile; y <= bottomTile; ++y) {
-        for (int x = leftTile; x <= rightTile; ++x) {
-            int tile = map.getTile(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
-            for (int solidTile : solidTiles) {
-                if (tile == solidTile) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
 
 bool rectIntersects(const sf::FloatRect& rect1, const sf::FloatRect& rect2) {
     return !(rect1.position.x > rect2.position.x + rect2.size.x ||
