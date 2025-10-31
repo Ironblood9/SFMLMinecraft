@@ -10,15 +10,15 @@ Character::Character(sf::Texture& texture)
 
     animations["idle"] = Animation({ 64, 64 }, 1, 0.2f, 0);
     animations["walk"] = Animation({ 64, 64 }, 4, 0.1f, 1);
-    animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 1);
-    animations["attack1"] = Animation({ 64, 64 }, 3, 0.1f, 3);
-    animations["attack2"] = Animation({ 64, 64 }, 4, 0.08f, 4);
+    animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 2);
+    animations["pickaxe_idle"] = Animation({ 64, 64 }, 1, 0.1f, 3);
+    animations["pickaxe"] = Animation({ 64, 67 }, 4, 0.1f, 4);
     animations["attack3"] = Animation({ 64, 64 }, 4, 0.08f, 5);
     animations["slash"] = Animation({ 64, 64 }, 3, 0.1f, 6);
     animations["slash2"] = Animation({ 64, 64 }, 4, 0.1f, 7);
     animations["shield"] = Animation({ 64, 64 }, 3, 0.12f, 8);
     animations["bow"] = Animation({ 64, 64 }, 3, 0.12f, 9);
-    animations["fall"] = Animation({ 64, 64 }, 2, 0.15f, 10);
+    animations["fall"] = Animation({ 64, 64 }, 1, 0.15f, 1);
 
     currentAnimation = "idle";
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
@@ -33,13 +33,21 @@ Character::Character(sf::Texture& texture)
 void Character::update(float deltaTime) {
     previousPosition = sprite.getPosition();
 
+    // Pickaxe cooldown
+    if (pickaxeCooldown > 0.0f) {
+        pickaxeCooldown -= deltaTime;
+        if (pickaxeCooldown <= 0.0f) {
+            usingPickaxe = false;
+        }
+    }
+
     // Gravity
     if (!isOnGround) {
         applyGravity(deltaTime);
     }
 
-    //Friction
-    if (isOnGround) {
+    // Friction
+    if (isOnGround && !usingPickaxe) {
         velocity.x *= friction;
         if (std::abs(velocity.x) < 10.f) velocity.x = 0.f;
     }
@@ -72,52 +80,108 @@ void Character::jump() {
     }
 }
 
-void Character::updateAnimationState() {
+void Character::updateAnimationState() 
+{
+    if (usingPickaxe) {
+        setAnimation("pickaxe");
+        return;
+    }
+
     if (!isOnGround) {
         if (velocity.y < 0) {
             setAnimation("jump"); 
         }
-        else {
+        else
+        {
             setAnimation("fall"); 
         }
     }
-    else {
+    else
+    {
         if (std::abs(velocity.x) > 0.1f) {
             setAnimation("walk");
         }
-        else {
+        else 
+        {
             setAnimation("idle");
         }
     }
 }
 
-void Character::handleInput() {
-    // Right
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-        velocity.x = -moveSpeed;
-
-        if (facingRight) {
-            facingRight = false;
-            sprite.setScale({ -1.5f, 1.5f });
-            updateOrigin();
-        }
+void Character::handleInput() 
+{
+    // Pickaxe kullanýmý (E tuþu)
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E) && pickaxeCooldown <= 0.0f) {
+        usePickaxe();
+        updateOrigin();
     }
-    //Left
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-        velocity.x = moveSpeed;
+    // Eðer pickaxe kullanmýyorsa hareket edebilir
+    if (!usingPickaxe) {
+        // Right
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+            velocity.x = -moveSpeed;
 
-        if (!facingRight) {
-            facingRight = true;
-            sprite.setScale({ 1.5f, 1.5f });
+            if (facingRight) {
+                facingRight = false;
+                sprite.setScale({ -1.5f, 1.5f });
+                updateOrigin();
+            }
         }
-    }
+        //Left
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+            velocity.x = moveSpeed;
 
-    // Jump
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround) {
-        jump();
+            if (!facingRight) {
+                facingRight = true;
+                sprite.setScale({ 1.5f, 1.5f });
+            }
+        }
+
+        // Jump
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround) {
+            jump();
+        }
     }
 }
 
+    void Character::usePickaxe() {
+        updateOrigin();
+        usingPickaxe = true;
+        pickaxeCooldown = PICKAXE_COOLDOWN_TIME;
+        setAnimation("pickaxe");
+        animations["pickaxe"].reset();
+    }
+
+    bool Character::isUsingPickaxe() const {
+        return usingPickaxe;
+    }
+
+    sf::FloatRect Character::getPickaxeHitbox() const {
+        sf::FloatRect characterBounds = sprite.getGlobalBounds();
+        sf::FloatRect pickaxeHitbox;
+
+        // Pickaxe hitbox'ýný karakterin önüne yerleþtir
+        float pickaxeWidth = 30.0f;
+        float pickaxeHeight = 20.0f;
+        float pickaxeY = characterBounds.position.y + characterBounds.size.y * 0.3f;
+
+        if (facingRight) {
+            // Saða bakýyorsa karakterin saðýna
+            pickaxeHitbox = sf::FloatRect(
+                { characterBounds.position.x + characterBounds.size.x - 10.0f, pickaxeY },
+                { pickaxeWidth, pickaxeHeight }
+            );
+        }
+        else {
+            // Sola bakýyorsa karakterin soluna
+            pickaxeHitbox = sf::FloatRect(
+                { characterBounds.position.x - pickaxeWidth + 10.0f, pickaxeY },
+                { pickaxeWidth, pickaxeHeight }
+            );
+        }
+
+        return pickaxeHitbox;
+    }
 //Origin!!!
 void Character::updateOrigin() {
     sf::FloatRect bounds = sprite.getLocalBounds();

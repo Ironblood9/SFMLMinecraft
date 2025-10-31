@@ -81,6 +81,56 @@ void drawHitbox(sf::RenderWindow& window, const Character& character) {
     hitboxVisual.setOutlineThickness(1.f);
     window.draw(hitboxVisual);
 }
+// Pickaxe ile kırılabilen bloklar
+std::vector<int> breakableTiles = {
+    TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_COBBLESTONE, TILE_COAL_ORE,
+    TILE_IRON_ORE, TILE_DIAMOND_ORE, TILE_RUBY_ORE, TILE_LAPIS_ORE,
+    TILE_LOG, TILE_DARK_LOG, TILE_WHITE_LOG, TILE_LEAVES
+};
+
+// Pickaxe hitbox'ını çizme fonksiyonu
+void drawPickaxeHitbox(sf::RenderWindow& window, const Character& character) {
+    if (character.isUsingPickaxe()) {
+        sf::RectangleShape pickaxeVisual;
+        pickaxeVisual.setSize(character.getPickaxeHitbox().size);
+        pickaxeVisual.setPosition(character.getPickaxeHitbox().position);
+        pickaxeVisual.setFillColor(sf::Color::Transparent);
+        pickaxeVisual.setOutlineColor(sf::Color::Blue);
+        pickaxeVisual.setOutlineThickness(1.f);
+        window.draw(pickaxeVisual);
+    }
+}
+
+// Pickaxe ile blok kırma fonksiyonu
+void handlePickaxeBreaking(Character& character, TileMap& map, const std::vector<int>& breakableTiles) {
+    if (character.isUsingPickaxe()) {
+        sf::FloatRect pickaxeHitbox = character.getPickaxeHitbox();
+
+        // Pickaxe hitbox'ının içindeki blokları kontrol et
+        int leftTile = static_cast<int>(pickaxeHitbox.position.x / 46.f);
+        int rightTile = static_cast<int>((pickaxeHitbox.position.x + pickaxeHitbox.size.x) / 46.f);
+        int topTile = static_cast<int>(pickaxeHitbox.position.y / 46.f);
+        int bottomTile = static_cast<int>((pickaxeHitbox.position.y + pickaxeHitbox.size.y) / 46.f);
+
+        for (int y = topTile; y <= bottomTile; ++y) {
+            for (int x = leftTile; x <= rightTile; ++x) {
+                if (x >= 0 && x < static_cast<int>(map.getWidth()) &&
+                    y >= 0 && y < static_cast<int>(map.getHeight())) {
+
+                    int tileID = map.getTile(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
+
+                    // Eğer blok kırılabilir ise
+                    if (std::find(breakableTiles.begin(), breakableTiles.end(), tileID) != breakableTiles.end()) {
+                        // Bloku kır (hava ile değiştir)
+                        map.setTile(static_cast<unsigned int>(x), static_cast<unsigned int>(y), TILE_AIR);
+                        // Bir blok kırdıktan sonra döngüden çık (isteğe bağlı)
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
 
 int main() {
     sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "2D Minecraft");
@@ -145,6 +195,9 @@ int main() {
 
         // Input handling 
         character.handleInput();
+
+        //Pickaxe
+        handlePickaxeBreaking(character, map, breakableTiles);
 
         // Character update 
         character.update(deltaTime);
@@ -231,7 +284,8 @@ int main() {
         window.clear(sf::Color(120, 180, 240));
         window.draw(map);
         character.draw(window);
-        drawHitbox(window, character); 
+        drawHitbox(window, character);
+        drawPickaxeHitbox(window, character); // Pickaxe hitbox'ını çiz
         window.draw(selectionBox);
         window.display();
     }

@@ -20,6 +20,10 @@ public:
     void revertPosition();
     void setOnGround(bool onGround);
     bool getIsOnGround() const;
+    //Pickaxe
+    void usePickaxe();
+    bool isUsingPickaxe() const;
+    sf::FloatRect getPickaxeHitbox() const;
 
 private:
     void updateHitbox();
@@ -44,5 +48,9 @@ private:
     float maxFallSpeed;
     const float moveSpeed = 300.f;
     const float friction = 0.88f;
+    //Pickaxe
+    bool usingPickaxe = false;
+    float pickaxeCooldown = 0.0f;
+    const float PICKAXE_COOLDOWN_TIME = 0.4f;
 };
 
