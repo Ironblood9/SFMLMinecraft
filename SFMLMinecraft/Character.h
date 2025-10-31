@@ -1,7 +1,5 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <string>
-#include <unordered_map>
 #include "Animation.h"
 
 class Character {

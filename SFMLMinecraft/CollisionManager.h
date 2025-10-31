@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include "Character.h"
 #include "TileMap.h"
-#include <vector>
 
 class CollisionManager {
 public:

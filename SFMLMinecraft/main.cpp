@@ -3,87 +3,8 @@
 #include "World.h"
 #include "Character.h"
 #include "CollisionManager.h"
-#include <vector>
-#include <cstdlib>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
+#include "ActionManager.h"
 
-
-struct MiningProgress {
-    int tileX = -1;
-    int tileY = -1;
-    float progress = 0.0f;
-    float requiredTime = 1.0f; 
-    bool active = false;
-};
-
-bool handleMining(Character& character, TileMap& map, int tileX, int tileY,
-    const std::vector<int>& breakableTiles, const sf::Vector2u& tileSize,
-    MiningProgress& miningProgress, float deltaTime, bool isMousePressed) {
-
-    //Distance check
-    sf::Vector2f characterCenter = character.getPosition();
-    characterCenter.x += character.getGlobalBounds().size.x / 2.f;
-    characterCenter.y += character.getGlobalBounds().size.y / 2.f;
-
-    sf::Vector2f tileCenter(
-        tileX * tileSize.x + tileSize.x / 2.f,
-        tileY * tileSize.y + tileSize.y / 2.f
-    );
-
-    float distance = std::sqrt(
-        std::pow(characterCenter.x - tileCenter.x, 2) +
-        std::pow(characterCenter.y - tileCenter.y, 2)
-    );
-
-    float maxMiningDistance = tileSize.x * 3.0f;
-
-    if (distance > maxMiningDistance ||
-        tileX < 0 || tileX >= static_cast<int>(map.getWidth()) ||
-        tileY < 0 || tileY >= static_cast<int>(map.getHeight())) {
-
-        character.stopMining();
-        miningProgress.active = false;
-        miningProgress.progress = 0.0f;
-        return false;
-    }
-
-    int tileID = map.getTile(static_cast<unsigned int>(tileX), static_cast<unsigned int>(tileY));
-    if (std::find(breakableTiles.begin(), breakableTiles.end(), tileID) == breakableTiles.end()) {
-        character.stopMining();
-        miningProgress.active = false;
-        miningProgress.progress = 0.0f;
-        return false;
-    }
-
-    if (!isMousePressed) {
-        character.stopMining();
-        miningProgress.active = false;
-        miningProgress.progress = 0.0f;
-        return false;
-    }
-
-    if (!miningProgress.active || miningProgress.tileX != tileX || miningProgress.tileY != tileY) {
-        miningProgress.active = true;
-        miningProgress.tileX = tileX;
-        miningProgress.tileY = tileY;
-        miningProgress.progress = 0.0f;
-        character.startMining();
-    }
-    
-    miningProgress.progress += deltaTime;
-
-    if (miningProgress.progress >= miningProgress.requiredTime) {
-        map.setTile(static_cast<unsigned int>(tileX), static_cast<unsigned int>(tileY), TILE_AIR);
-        miningProgress.active = false;
-        miningProgress.progress = 0.0f;
-        character.stopMining();
-        return true;
-    }
-
-    return false;
-}
 
 int main() {
     sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "2D Minecraft");
@@ -144,10 +65,12 @@ int main() {
     selectionBox.setOutlineThickness(2.f);
 
     // Mining progress
-    MiningProgress miningProgress;
+    ActionManager::Progress miningProgress;
 
     sf::Clock clock;
     bool wasMousePressed = false;
+
+    ActionManager actionManager(3.0f);
 
     while (window.isOpen()) {
         float deltaTime = clock.restart().asSeconds();
@@ -170,7 +93,7 @@ int main() {
 
         // Mining handling
         bool isMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-        handleMining(character, map, mX, mY, breakableTiles, tileSize, miningProgress, deltaTime, isMousePressed);
+        actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
 
         // Character update
         character.update(deltaTime);

@@ -1,6 +1,5 @@
 #include "Character.h"
 #include <SFML/Window/Keyboard.hpp>
-#include <cmath>
 
 Character::Character(sf::Texture& texture)
     : sprite(texture), facingRight(true),

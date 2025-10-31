@@ -1,10 +1,6 @@
 #include "World.h"
 #include "TileMap.h"
 #include "TileID.h"
-#include <iostream>
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
 
 
 bool rectIntersects(const sf::FloatRect& rect1, const sf::FloatRect& rect2) {
