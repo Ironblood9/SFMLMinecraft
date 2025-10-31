@@ -1,4 +1,4 @@
-
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <unordered_map>
@@ -7,50 +7,60 @@
 class Character {
 public:
     Character(sf::Texture& texture);
+
     void update(float deltaTime);
     void handleInput();
     void draw(sf::RenderWindow& window) const;
+
     void setPosition(float x, float y);
     void setPosition(const sf::Vector2f& position);
     sf::Vector2f getPosition() const;
-    void setVelocity(const sf::Vector2f& newVelocity);
     sf::Vector2f getVelocity() const;
+    void setVelocity(const sf::Vector2f& newVelocity);
     sf::FloatRect getGlobalBounds() const;
     const sf::FloatRect& getHitbox() const;
-    void revertPosition();
+
     void setOnGround(bool onGround);
     bool getIsOnGround() const;
-    //Pickaxe
+    void revertPosition();
+
     void usePickaxe();
     bool isUsingPickaxe() const;
-    sf::FloatRect getPickaxeHitbox() const;
+    bool isPickaxeAnimationComplete() const;
+    void resetPickaxeAnimation();
 
 private:
-    void updateHitbox();
-    void updateAnimationState();
     void applyGravity(float deltaTime);
     void jump();
+    void updateAnimationState();
     void setAnimation(const std::string& animName);
     void updateOrigin();
+    void updateHitbox();
 
     sf::Sprite sprite;
     std::unordered_map<std::string, Animation> animations;
     std::string currentAnimation;
-    bool facingRight;
-    sf::Vector2f velocity;
-    sf::Vector2f previousPosition;
+
+    sf::Vector2f velocity{ 0.f, 0.f };
+    sf::Vector2f previousPosition{ 0.f, 0.f };
     sf::FloatRect hitbox;
 
+    bool facingRight;
     bool isOnGround;
     bool isJumping;
+
+    // Physics
     float gravity;
     float jumpVelocity;
     float maxFallSpeed;
-    const float moveSpeed = 300.f;
-    const float friction = 0.88f;
-    //Pickaxe
+
+    // Animations
     bool usingPickaxe = false;
-    float pickaxeCooldown = 0.0f;
-    const float PICKAXE_COOLDOWN_TIME = 0.4f;
+    float pickaxeAnimationTimer = 0.0f;
+
+    // Constants
+    static constexpr float moveSpeed = 400.0f;
+    static constexpr float friction = 0.85f;
+    static constexpr float PICKAXE_ANIMATION_DURATION = 1.0f; 
 };
 

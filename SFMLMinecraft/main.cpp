@@ -67,7 +67,7 @@ void resolveCharacterCollision(Character& character, const TileMap& map, const s
 bool checkGroundCollision(const Character& character, const TileMap& map, const std::vector<int>& solidTiles) {
     sf::FloatRect hitbox = character.getHitbox();
     sf::FloatRect groundCheck = hitbox; //check under the hitbox
-    groundCheck.position.y += 2.f; 
+    groundCheck.position.y += 2.f;
 
     return checkHitboxCollision(groundCheck, map, solidTiles);
 }
@@ -81,55 +81,89 @@ void drawHitbox(sf::RenderWindow& window, const Character& character) {
     hitboxVisual.setOutlineThickness(1.f);
     window.draw(hitboxVisual);
 }
-// Pickaxe ile kırılabilen bloklar
-std::vector<int> breakableTiles = {
-    TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_COBBLESTONE, TILE_COAL_ORE,
-    TILE_IRON_ORE, TILE_DIAMOND_ORE, TILE_RUBY_ORE, TILE_LAPIS_ORE,
-    TILE_LOG, TILE_DARK_LOG, TILE_WHITE_LOG, TILE_LEAVES
+
+struct PickaxeBreak {
+    bool active = false;
+    float timer = 0.0f;
+    int tileX = -1;
+    int tileY = -1;
 };
 
-// Pickaxe hitbox'ını çizme fonksiyonu
-void drawPickaxeHitbox(sf::RenderWindow& window, const Character& character) {
-    if (character.isUsingPickaxe()) {
-        sf::RectangleShape pickaxeVisual;
-        pickaxeVisual.setSize(character.getPickaxeHitbox().size);
-        pickaxeVisual.setPosition(character.getPickaxeHitbox().position);
-        pickaxeVisual.setFillColor(sf::Color::Transparent);
-        pickaxeVisual.setOutlineColor(sf::Color::Blue);
-        pickaxeVisual.setOutlineThickness(1.f);
-        window.draw(pickaxeVisual);
+// Güncellenmiş: Pickaxe ile blok kırma fonksiyonu - 1.5 saniye sonra kır
+bool handlePickaxeBreaking(Character& character, TileMap& map, int tileX, int tileY,
+    const std::vector<int>& breakableTiles, const sf::Vector2u& tileSize, PickaxeBreak& pickaxeBreak, float deltaTime) {
+
+    // Sol tıklama ile pickaxe kullanımı başlat
+    static bool wasMousePressed = false;
+    bool isMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+
+    if (isMousePressed && !wasMousePressed && !pickaxeBreak.active && !character.isUsingPickaxe()) {
+        character.usePickaxe();
+        pickaxeBreak.active = true;
+        pickaxeBreak.timer = 0.0f;
+        pickaxeBreak.tileX = tileX;
+        pickaxeBreak.tileY = tileY;
+        std::cout << "Pickaxe animation started, breaking in 1.5 seconds..." << std::endl;
     }
-}
+    wasMousePressed = isMousePressed;
 
-// Pickaxe ile blok kırma fonksiyonu
-void handlePickaxeBreaking(Character& character, TileMap& map, const std::vector<int>& breakableTiles) {
-    if (character.isUsingPickaxe()) {
-        sf::FloatRect pickaxeHitbox = character.getPickaxeHitbox();
+    // Zamanlayıcıyı güncelle
+    if (pickaxeBreak.active) {
+        pickaxeBreak.timer += deltaTime;
 
-        // Pickaxe hitbox'ının içindeki blokları kontrol et
-        int leftTile = static_cast<int>(pickaxeHitbox.position.x / 46.f);
-        int rightTile = static_cast<int>((pickaxeHitbox.position.x + pickaxeHitbox.size.x) / 46.f);
-        int topTile = static_cast<int>(pickaxeHitbox.position.y / 46.f);
-        int bottomTile = static_cast<int>((pickaxeHitbox.position.y + pickaxeHitbox.size.y) / 46.f);
+        // 1.5 saniye sonra kırma işlemini yap
+        if (pickaxeBreak.timer >= 1.0f) {
+            // Karakterin merkez noktası
+            sf::Vector2f characterCenter = character.getPosition();
+            characterCenter.x += character.getGlobalBounds().size.x / 2.f;
+            characterCenter.y += character.getGlobalBounds().size.y / 2.f;
 
-        for (int y = topTile; y <= bottomTile; ++y) {
-            for (int x = leftTile; x <= rightTile; ++x) {
-                if (x >= 0 && x < static_cast<int>(map.getWidth()) &&
-                    y >= 0 && y < static_cast<int>(map.getHeight())) {
+            // Seçili karenin merkez noktası
+            sf::Vector2f tileCenter(
+                pickaxeBreak.tileX * tileSize.x + tileSize.x / 2.f,
+                pickaxeBreak.tileY * tileSize.y + tileSize.y / 2.f
+            );
 
-                    int tileID = map.getTile(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
+            // Mesafe hesapla
+            float distance = std::sqrt(
+                std::pow(characterCenter.x - tileCenter.x, 2) +
+                std::pow(characterCenter.y - tileCenter.y, 2)
+            );
+
+            // Maksimum kırma mesafesi (3 kare uzaklık)
+            float maxBreakDistance = tileSize.x * 3.0f;
+
+            bool blockBroken = false;
+            if (distance <= maxBreakDistance) {
+                if (pickaxeBreak.tileX >= 0 && pickaxeBreak.tileX < static_cast<int>(map.getWidth()) &&
+                    pickaxeBreak.tileY >= 0 && pickaxeBreak.tileY < static_cast<int>(map.getHeight())) {
+
+                    int tileID = map.getTile(static_cast<unsigned int>(pickaxeBreak.tileX),
+                        static_cast<unsigned int>(pickaxeBreak.tileY));
 
                     // Eğer blok kırılabilir ise
                     if (std::find(breakableTiles.begin(), breakableTiles.end(), tileID) != breakableTiles.end()) {
-                        // Bloku kır (hava ile değiştir)
-                        map.setTile(static_cast<unsigned int>(x), static_cast<unsigned int>(y), TILE_AIR);
-                        // Bir blok kırdıktan sonra döngüden çık (isteğe bağlı)
-                        return;
+                        // Bloku kır
+                        map.setTile(static_cast<unsigned int>(pickaxeBreak.tileX),
+                            static_cast<unsigned int>(pickaxeBreak.tileY), TILE_AIR);
+                        std::cout << "Block broken at (" << pickaxeBreak.tileX << ", " << pickaxeBreak.tileY << ")" << std::endl;
+                        blockBroken = true;
                     }
                 }
             }
+            else {
+                std::cout << "Too far to break! Distance: " << distance << std::endl;
+            }
+
+            // Kırma işlemi tamamlandı, zamanlayıcıyı sıfırla
+            pickaxeBreak.active = false;
+            pickaxeBreak.timer = 0.0f;
+
+            return blockBroken;
         }
     }
+
+    return false;
 }
 
 int main() {
@@ -175,12 +209,23 @@ int main() {
         TILE_MELON, TILE_CAKE, TILE_LAPIS_BLOCK, TILE_LAPIS_ORE,
         TILE_ENCHANTING_TABLE, TILE_LEAVES
     };
-
+    // Pickaxe ile kırılabilen bloklar
+    std::vector<int> breakableTiles = {
+        TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_COBBLESTONE, TILE_COAL_ORE,
+        TILE_IRON_ORE, TILE_DIAMOND_ORE, TILE_RUBY_ORE, TILE_LAPIS_ORE,
+        TILE_LOG, TILE_DARK_LOG, TILE_WHITE_LOG, TILE_LEAVES, TILE_SAND,
+        TILE_BOOKSHELF, TILE_PLANKS, TILE_TNT, TILE_MOSSY_COBBLESTONE,
+        TILE_OBSIDIAN, TILE_FURNACE, TILE_CRAFTING_TABLE, TILE_PUMPKIN,
+        TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE
+    };
     sf::RectangleShape selectionBox(sf::Vector2f(static_cast<float>(tileSize.x),
         static_cast<float>(tileSize.y)));
     selectionBox.setFillColor(sf::Color::Transparent);
     selectionBox.setOutlineColor(sf::Color::Yellow);
     selectionBox.setOutlineThickness(2.f);
+
+    // Pickaxe kırma zamanlayıcısı
+    PickaxeBreak pickaxeBreak;
 
     sf::Clock clock;
 
@@ -195,9 +240,14 @@ int main() {
 
         // Input handling 
         character.handleInput();
+        sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
+        sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
 
-        //Pickaxe
-        handlePickaxeBreaking(character, map, breakableTiles);
+        int mX = static_cast<int>(mouseWorldPos.x) / static_cast<int>(tileSize.x);
+        int mY = static_cast<int>(mouseWorldPos.y) / static_cast<int>(tileSize.y);
+
+        // Pickaxe ile blok kırma - 1.5 saniye sonra kır
+        handlePickaxeBreaking(character, map, mX, mY, breakableTiles, tileSize, pickaxeBreak, deltaTime);
 
         // Character update 
         character.update(deltaTime);
@@ -243,49 +293,14 @@ int main() {
         view.setCenter(cameraPos + cameraVelocity);
         window.setView(view);
 
-        // Mause position
-        sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
-        sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
-
-        int mX = static_cast<int>(mouseWorldPos.x) / static_cast<int>(tileSize.x);
-        int mY = static_cast<int>(mouseWorldPos.y) / static_cast<int>(tileSize.y);
-
         selectionBox.setPosition(sf::Vector2f(static_cast<float>(mX * tileSize.x),
             static_cast<float>(mY * tileSize.y)));
-
-        if (mX >= 0 && mX < static_cast<int>(map_width) &&
-            mY >= 0 && mY < static_cast<int>(map.getHeight())) {
-
-            float distX = std::abs((mX * tileSize.x + tileSize.x / 2.f) -
-                (character.getPosition().x + character.getGlobalBounds().size.x / 2.f));
-            float distY = std::abs((mY * tileSize.y + tileSize.y / 2.f) -
-                (character.getPosition().y + character.getGlobalBounds().size.y / 2.f));
-
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                if (distX > tileSize.x * 2.0f || distY > tileSize.y * 2.0f) {
-                    map.setTile(static_cast<unsigned int>(mX),
-                        static_cast<unsigned int>(mY), TILE_AIR);
-                }
-            }
-            else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-                if (distX > tileSize.x * 2.0f || distY > tileSize.y * 2.0f) {
-                    int currentTile = map.getTile(static_cast<unsigned int>(mX),
-                        static_cast<unsigned int>(mY));
-
-                    if (currentTile == TILE_AIR) {
-                        map.setTile(static_cast<unsigned int>(mX),
-                            static_cast<unsigned int>(mY), TILE_DIRT);
-                    }
-                }
-            }
-        }
 
         // Render
         window.clear(sf::Color(120, 180, 240));
         window.draw(map);
         character.draw(window);
         drawHitbox(window, character);
-        drawPickaxeHitbox(window, character); // Pickaxe hitbox'ını çiz
         window.draw(selectionBox);
         window.display();
     }
