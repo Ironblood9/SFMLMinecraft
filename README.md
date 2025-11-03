@@ -33,7 +33,7 @@ C++
 
 SFML 3
 
-he project is still under active development.
+I am still developing the project
 Suggestions, issues, and pull requests are always welcome! 🙌
 
 📌 Author: [Demirkan Çevik]
