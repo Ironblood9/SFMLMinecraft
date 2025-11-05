@@ -26,7 +26,7 @@ The goal is to explore game engine logic, block-based world systems, and core ga
 
 <img width="802" height="601" alt="Ekran görüntüsü 2025-11-02 213756" src="https://github.com/user-attachments/assets/b4a50140-7bb3-47fc-8d6d-6bc7ca8a8386" />
 
-
+<img width="799" height="597" alt="Ekran görüntüsü 2025-11-05 213726" src="https://github.com/user-attachments/assets/fedf2946-1d48-471f-8c63-d53af13415e0" />
 
 🧰 Technologies
 C++
