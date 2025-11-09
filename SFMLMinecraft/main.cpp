@@ -45,7 +45,14 @@ int main() {
     playerInventory.updateSprites(map.getTileSet(), tileSize);
 
     InventoryPanel inventoryPanel(playerInventory, window.getSize());
-    inventoryPanel.loadTexture("assets/tileset.png");
+    inventoryPanel.loadTexture("assets/tileset.png", tileSize);
+
+    // optionally populate the inventory with tile IDs:
+	inventoryPanel.populateWithTiles(TILE_CATEGORY_TERRAIN);
+    inventoryPanel.populateWithTiles(TILE_CATEGORY_WOOD);
+    inventoryPanel.populateWithTiles(TILE_CATEGORY_ORES);
+    inventoryPanel.populateWithTiles(TILE_CATEGORY_DECORATIVE);
+
 
     sf::Font font;
     if (!font.openFromFile("assets/font.ttf")) {
@@ -106,7 +113,7 @@ int main() {
                     inventoryPanel.toggle();
                 }
 
-                // 1–9 arası hotbar slotu seçimi
+                // Between 1–9  hotbar slots selection
                 auto key = ev->getIf<sf::Event::KeyPressed>()->code;
                 if (key >= sf::Keyboard::Key::Num1 && key <= sf::Keyboard::Key::Num9) {
                     int slot = static_cast<int>(key) - static_cast<int>(sf::Keyboard::Key::Num1);
@@ -115,7 +122,7 @@ int main() {
 
             }
 
-            // Mouse tıklaması (envanter içi etkileşim)
+			// Mouse click ınventory interaction
             if (ev->is<sf::Event::MouseButtonPressed>()) {
                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 inventoryPanel.handleClick(mousePos);
@@ -136,16 +143,13 @@ int main() {
         actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
 
 
-        // Envanter açıkken karakter hareketini ve mining'i durdur
         if (!inventoryPanel.getVisible()) {
             character.handleInput();
             actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
 
-            // ... diğer güncellemeler
         }
         else {
-            // Sadece envanter etkileşimleri
-            character.stopMovement(); // Karakter hareketini durdur
+            character.stopMovement(); 
         }
 
         // --- Character Physics ---
@@ -186,22 +190,18 @@ int main() {
         // --- Rendering ---
         window.clear(sf::Color(120, 180, 240));
 
-        // Önce dünyayı çiz (view ile)
+		//World Draw 
         window.setView(view);
         window.draw(map);
         character.draw(window);
         window.draw(selectionBox);
 
-        // Hotbar'ı çiz (view'dan bağımsız)
-        window.setView(window.getDefaultView()); // View'ı sıfırla
+        // Hitbar draw
+        window.setView(window.getDefaultView());
         playerInventory.draw(window, map.getTileSet());
-
-        // Envanter panelini çiz (view'dan bağımsız)
+        //Inventrory Panel draw
         inventoryPanel.draw(window);
-
-        // View'ı tekrar dünya için ayarla (sonraki frame için)
         window.setView(view);
-
         window.display();
     }
 

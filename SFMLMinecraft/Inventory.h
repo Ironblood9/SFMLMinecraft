@@ -5,7 +5,7 @@ struct InventoryItem {
     int tileId;
     int quantity;
     std::string name;
-    std::unique_ptr<sf::Sprite> sprite; // SFML 3 uyumlu
+    std::unique_ptr<sf::Sprite> sprite; 
 
     InventoryItem(int id = -1, int qty = 0, const std::string& n = "");
 };

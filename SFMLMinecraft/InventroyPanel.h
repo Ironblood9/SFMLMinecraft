@@ -19,7 +19,9 @@ private:
 public:
     InventoryPanel(Inventory& inventory, const sf::Vector2u& windowSize);
 
-    bool loadTexture(const std::string& texturePath);
+    bool loadTexture(const std::string& texturePath, const sf::Vector2u& tileSize);
+    void populateWithTiles(const std::vector<int>& tileIds);
+
     void toggle();
     bool getVisible() const { return isVisible; }
     void draw(sf::RenderWindow& window);

@@ -20,8 +20,23 @@ void InventoryPanel::updateLayout(const sf::Vector2u& windowSize) {
     background.setSize(sf::Vector2f(panelWidth, panelHeight));
 }
 
-bool InventoryPanel::loadTexture(const std::string& texturePath) {
-    return texture.loadFromFile(texturePath);
+bool InventoryPanel::loadTexture(const std::string& texturePath, const sf::Vector2u& tileSize) {
+    if (!texture.loadFromFile(texturePath)) return false;
+    this->tileSize = tileSize;
+
+    playerInventory.updateSprites(texture, this->tileSize);
+    return true;
+}
+
+void InventoryPanel::populateWithTiles(const std::vector<int>& tileIds) {
+    for (int id : tileIds) {
+        if (!playerInventory.addItem(id, 1)) {
+            break;
+        }
+    }
+    if (texture.getSize().x > 0 && tileSize.x > 0) {
+        playerInventory.updateSprites(texture, tileSize);
+    }
 }
 
 void InventoryPanel::toggle() {
@@ -33,18 +48,17 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
 
     window.draw(background);
 
-    // Baþlýk
     static sf::Font font;
     static bool fontLoaded = font.openFromFile("assets/font.ttf");
 
     if (fontLoaded) {
-        sf::Text title(font,"Envanter", 20);
+        sf::Text title(font, "Envanter", 20);
         title.setPosition({ position.x + 10, position.y - 30 });
         title.setFillColor(sf::Color::White);
         window.draw(title);
     }
 
-    // Slots çiz
+	// Draw slots and items
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < columns; ++col) {
             int slotIndex = row * columns + col;
@@ -57,7 +71,7 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
 
             window.draw(slot);
 
-            // Item çiz
+			// Draw item if exists
             InventoryItem* item = playerInventory.getItem(slotIndex);
             if (item && item->tileId != TILE_AIR && item->quantity > 0) {
                 if (item->sprite) {
@@ -66,9 +80,8 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
                     window.draw(*item->sprite);
                 }
 
-                // Miktar yazýsý
+				// Draw quantity if more than 1
                 if (item->quantity > 1 && fontLoaded) {
-                    // sf::Text'i font ve metin ile birlikte oluþtur
                     sf::Text quantityText(font, std::to_string(item->quantity), 14);
                     quantityText.setFillColor(sf::Color::White);
                     quantityText.setPosition(
@@ -94,8 +107,7 @@ void InventoryPanel::handleClick(const sf::Vector2f& mousePos) {
 
             if (slotRect.contains(mousePos)) {
                 int slotIndex = row * columns + col;
-                // Týklanan slot ile ilgili iþlemler
-                // Örneðin: item seçme, taþýma vs.
+				// eklenecek etkileþimler burada
                 break;
             }
         }

@@ -6,27 +6,26 @@ Inventory::Inventory(int capacity)
 {
     items.resize(capacity);
 
-    // Default items - 1. slot kýlýç, 2. slot kazma
+    // Default items - 1. slot swrod, 2. slot picaxe
     items[0] = InventoryItem(TOOL_SWORD, 1, "Sword");
     items[1] = InventoryItem(TOOL_PICKAXE, 1, "Pickaxe");
 }
 
 bool Inventory::addItem(int tileId, int quantity) {
-    // Ayný item varsa stackle
+	//If same item exists, stack it
     for (auto& item : items) {
         if (item.tileId == tileId && item.quantity < 64) {
             item.quantity += quantity;
             return true;
         }
     }
-
-    // Boþ slot bul
+    // Fýnd empty slot
     for (auto& item : items) {
         if (item.tileId == TILE_AIR) {
             item.tileId = tileId;
             item.quantity = quantity;
 
-            // Ýsimlendirme
+            // Set name based on tileId
             switch (tileId) {
             case TILE_STONE: item.name = "Stone"; break;
             case TILE_DIRT:  item.name = "Dirt"; break;
@@ -37,7 +36,8 @@ bool Inventory::addItem(int tileId, int quantity) {
             return true;
         }
     }
-    return false; // Yer yok
+	
+    return false; 
 }
 
 bool Inventory::removeItem(int slotIndex, int quantity) {
@@ -56,7 +56,7 @@ InventoryItem* Inventory::getItem(int slotIndex) {
 }
 
 void Inventory::setSelectedSlot(int slot) {
-    if (slot >= 0 && slot < 9) { // sadece hotbar
+    if (slot >= 0 && slot < 9) { 
         selectedSlot = slot;
     }
 }
@@ -70,14 +70,14 @@ void Inventory::draw(sf::RenderWindow& window, const sf::Texture& texture) {
     float startX = 400.f - (9 * slotSize) / 2.f;
     float y = 550.f;
 
-    // Hotbar arkaplaný
+	// hotbar background
     sf::RectangleShape hotbarBg(sf::Vector2f(9 * slotSize + 10, slotSize + 10));
     hotbarBg.setPosition({ startX - 5, y - 5 });
     hotbarBg.setFillColor(sf::Color(50, 50, 50, 180));
     window.draw(hotbarBg);
 
     for (int i = 0; i < 9; ++i) {
-        // Slot çerçevesi
+		// Slot frame
         sf::RectangleShape slot(sf::Vector2f(slotSize, slotSize));
         slot.setPosition({ startX + i * slotSize, y });
         slot.setFillColor(sf::Color(70, 70, 70, 200));
@@ -87,14 +87,12 @@ void Inventory::draw(sf::RenderWindow& window, const sf::Texture& texture) {
 
         auto& item = items[i];
         if (item.tileId != TILE_AIR && item.quantity > 0) {
-            // Item sprite'ý
             if (item.sprite) {
                 item.sprite->setPosition({ startX + i * slotSize + 2, y + 2 });
                 item.sprite->setScale({ 0.8f, 0.8f });
                 window.draw(*item.sprite);
             }
 
-            // Miktar yazýsý
             if (item.quantity > 1) {
                 static sf::Font font;
                 static bool fontLoaded = false;
@@ -125,7 +123,7 @@ void Inventory::updateSprites(const sf::Texture& texture, const sf::Vector2u& ti
             ));
         }
         else {
-            item.sprite.reset(); // Boþ slotta sprite yok
+            item.sprite.reset(); 
         }
     }
 }
