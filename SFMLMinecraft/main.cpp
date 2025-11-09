@@ -47,6 +47,11 @@ int main() {
     InventoryPanel inventoryPanel(playerInventory, window.getSize());
     inventoryPanel.loadTexture("assets/tileset.png");
 
+    sf::Font font;
+    if (!font.openFromFile("assets/font.ttf")) {
+        std::cout << "Font yüklenemedi, miktar yazıları olmadan devam ediliyor." << std::endl;
+    }
+
     // --- View (Camera) ---
     sf::View view(window.getDefaultView());
 
@@ -130,6 +135,19 @@ int main() {
         bool isMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
         actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
 
+
+        // Envanter açıkken karakter hareketini ve mining'i durdur
+        if (!inventoryPanel.getVisible()) {
+            character.handleInput();
+            actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
+
+            // ... diğer güncellemeler
+        }
+        else {
+            // Sadece envanter etkileşimleri
+            character.stopMovement(); // Karakter hareketini durdur
+        }
+
         // --- Character Physics ---
         character.update(deltaTime);
 
@@ -167,15 +185,22 @@ int main() {
 
         // --- Rendering ---
         window.clear(sf::Color(120, 180, 240));
+
+        // Önce dünyayı çiz (view ile)
+        window.setView(view);
         window.draw(map);
         character.draw(window);
         window.draw(selectionBox);
 
-        // Hotbar her zaman görünür
+        // Hotbar'ı çiz (view'dan bağımsız)
+        window.setView(window.getDefaultView()); // View'ı sıfırla
         playerInventory.draw(window, map.getTileSet());
 
-        // Envanter paneli (E ile aç/kapa)
+        // Envanter panelini çiz (view'dan bağımsız)
         inventoryPanel.draw(window);
+
+        // View'ı tekrar dünya için ayarla (sonraki frame için)
+        window.setView(view);
 
         window.display();
     }

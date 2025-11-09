@@ -67,22 +67,48 @@ InventoryItem* Inventory::getSelectedItem() {
 
 void Inventory::draw(sf::RenderWindow& window, const sf::Texture& texture) {
     float slotSize = 50.f;
-    float startX = 400.f - (9 * slotSize) / 2.f; // ortala
+    float startX = 400.f - (9 * slotSize) / 2.f;
     float y = 550.f;
 
+    // Hotbar arkaplaný
+    sf::RectangleShape hotbarBg(sf::Vector2f(9 * slotSize + 10, slotSize + 10));
+    hotbarBg.setPosition({ startX - 5, y - 5 });
+    hotbarBg.setFillColor(sf::Color(50, 50, 50, 180));
+    window.draw(hotbarBg);
+
     for (int i = 0; i < 9; ++i) {
+        // Slot çerçevesi
         sf::RectangleShape slot(sf::Vector2f(slotSize, slotSize));
         slot.setPosition({ startX + i * slotSize, y });
-        slot.setFillColor(sf::Color(100, 100, 100, 200));
+        slot.setFillColor(sf::Color(70, 70, 70, 200));
         slot.setOutlineThickness(2.f);
         slot.setOutlineColor(i == selectedSlot ? sf::Color::Yellow : sf::Color::White);
         window.draw(slot);
 
         auto& item = items[i];
-        if (item.tileId != TILE_AIR && item.quantity > 0 && item.sprite) {
-            item.sprite->setPosition({ startX + i * slotSize + 5, y + 5 });
-            item.sprite->setScale({ 0.5f, 0.5f });
-            window.draw(*item.sprite);
+        if (item.tileId != TILE_AIR && item.quantity > 0) {
+            // Item sprite'ý
+            if (item.sprite) {
+                item.sprite->setPosition({ startX + i * slotSize + 2, y + 2 });
+                item.sprite->setScale({ 0.8f, 0.8f });
+                window.draw(*item.sprite);
+            }
+
+            // Miktar yazýsý
+            if (item.quantity > 1) {
+                static sf::Font font;
+                static bool fontLoaded = false;
+                if (!fontLoaded) {
+                    font.openFromFile("assets/font.ttf");
+                    fontLoaded = true;
+                }
+
+                sf::Text quantityText(font, std::to_string(static_cast<int>(item.quantity)), 12);
+                quantityText.setFillColor(sf::Color::White);
+                quantityText.setPosition({ startX + i * slotSize + slotSize - 15, y + slotSize - 15 });
+                window.draw(quantityText);
+            }
+
         }
     }
 }

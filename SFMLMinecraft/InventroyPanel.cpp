@@ -33,6 +33,17 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
 
     window.draw(background);
 
+    // Baþlýk
+    static sf::Font font;
+    static bool fontLoaded = font.openFromFile("assets/font.ttf");
+
+    if (fontLoaded) {
+        sf::Text title(font,"Envanter", 20);
+        title.setPosition({ position.x + 10, position.y - 30 });
+        title.setFillColor(sf::Color::White);
+        window.draw(title);
+    }
+
     // Slots çiz
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < columns; ++col) {
@@ -40,7 +51,7 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
 
             sf::RectangleShape slot(sf::Vector2f(slotSize, slotSize));
             slot.setPosition({ position.x + 10.f + col * slotSize, position.y + 10.f + row * slotSize });
-            slot.setFillColor(sf::Color(100, 100, 100, 200));
+            slot.setFillColor(sf::Color(80, 80, 80, 200));
             slot.setOutlineThickness(1.f);
             slot.setOutlineColor(sf::Color::White);
 
@@ -48,10 +59,24 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
 
             // Item çiz
             InventoryItem* item = playerInventory.getItem(slotIndex);
-            if (item && item->tileId != TILE_AIR && item->quantity > 0 && item->sprite) {
-                item->sprite->setPosition(slot.getPosition() + sf::Vector2f(5.f, 5.f));
-                item->sprite->setScale({ 0.7f, 0.7f });
-                window.draw(*item->sprite);
+            if (item && item->tileId != TILE_AIR && item->quantity > 0) {
+                if (item->sprite) {
+                    item->sprite->setPosition(slot.getPosition() + sf::Vector2f(5.f, 5.f));
+                    item->sprite->setScale({ 0.8f, 0.8f });
+                    window.draw(*item->sprite);
+                }
+
+                // Miktar yazýsý
+                if (item->quantity > 1 && fontLoaded) {
+                    // sf::Text'i font ve metin ile birlikte oluþtur
+                    sf::Text quantityText(font, std::to_string(item->quantity), 14);
+                    quantityText.setFillColor(sf::Color::White);
+                    quantityText.setPosition(
+                        { slot.getPosition().x + slotSize - 20,
+                        slot.getPosition().y + slotSize - 20 }
+                    );
+                    window.draw(quantityText);
+                }
             }
         }
     }

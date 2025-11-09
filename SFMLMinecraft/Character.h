@@ -15,6 +15,7 @@ public:
     sf::Vector2f getPosition() const;
     sf::Vector2f getVelocity() const;
     void setVelocity(const sf::Vector2f& newVelocity);
+    void stopMovement();
     sf::FloatRect getGlobalBounds() const;
     const sf::FloatRect& getHitbox() const;
 
@@ -47,6 +48,7 @@ private:
     bool facingRight;
     bool isOnGround;
     bool isJumping;
+    bool isMoving;
 
     // Physics
     float gravity;

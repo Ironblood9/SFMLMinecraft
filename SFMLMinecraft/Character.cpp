@@ -231,6 +231,12 @@ void Character::setVelocity(const sf::Vector2f& newVelocity) {
     velocity = newVelocity;
 }
 
+void Character::stopMovement() {
+    velocity.x = 0; 
+    velocity.y = 0; 
+    isMoving = false; 
+}
+
 sf::FloatRect Character::getGlobalBounds() const {
     return sprite.getGlobalBounds();
 }
