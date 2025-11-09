@@ -4,6 +4,8 @@
 #include "Character.h"
 #include "CollisionManager.h"
 #include "ActionManager.h"
+#include "Inventory.h"
+#include "InventroyPanel.h"
 
 
 int main() {
@@ -16,11 +18,12 @@ int main() {
 
     std::vector<int> tiles(width * height, TILE_AIR);
 
-    // Create World
+    // --- World generation ---
     generateCleanTerrainWithLiquids(tiles, width, height);
     generateNiceTrees(tiles, width, height);
     generateSimpleDetails(tiles, width, height);
 
+    // --- Character ---
     sf::Texture characterTexture;
     if (!characterTexture.loadFromFile("assets/character_sheet.png")) {
         std::cerr << "Failed to load character_sheet.png!" << std::endl;
@@ -30,14 +33,24 @@ int main() {
     Character character(characterTexture);
     character.setPosition(150.f, 100.f);
 
+    // --- TileMap ---
     TileMap map;
     if (!map.load("assets/tileset.png", tileSize, tiles, width, height)) {
         std::cout << "Tileset failed to load! Check tileset file." << std::endl;
         return -1;
     }
 
+    // --- Inventory System ---
+    Inventory playerInventory;
+    playerInventory.updateSprites(map.getTileSet(), tileSize);
+
+    InventoryPanel inventoryPanel(playerInventory, window.getSize());
+    inventoryPanel.loadTexture("assets/tileset.png");
+
+    // --- View (Camera) ---
     sf::View view(window.getDefaultView());
 
+    // --- Solid & Breakable tiles ---
     std::vector<int> solidTiles = {
         TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_PLANKS, TILE_BRICKS,
         TILE_TNT, TILE_COBBLESTONE, TILE_BEDROCK, TILE_SAND, TILE_LOG,
@@ -58,58 +71,76 @@ int main() {
         TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE
     };
 
+    // --- Selection Box ---
     sf::RectangleShape selectionBox(sf::Vector2f(static_cast<float>(tileSize.x),
         static_cast<float>(tileSize.y)));
     selectionBox.setFillColor(sf::Color::Transparent);
     selectionBox.setOutlineColor(sf::Color::Yellow);
     selectionBox.setOutlineThickness(2.f);
 
-    // Mining progress
+    // --- Action Manager ---
+    ActionManager actionManager(3.0f);
     ActionManager::Progress miningProgress;
 
     sf::Clock clock;
     bool wasMousePressed = false;
 
-    ActionManager actionManager(3.0f);
-
+    // --- Game Loop ---
     while (window.isOpen()) {
         float deltaTime = clock.restart().asSeconds();
 
-        // Event handling
+        // --- Event Handling ---
         while (const std::optional<sf::Event> ev = window.pollEvent()) {
             if (ev->is<sf::Event::Closed>()) {
                 window.close();
             }
+
+            // E tuşu: envanteri aç/kapat
+            if (ev->is<sf::Event::KeyPressed>()) {
+                if (ev->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::E) {
+                    inventoryPanel.toggle();
+                }
+
+                // 1–9 arası hotbar slotu seçimi
+                auto key = ev->getIf<sf::Event::KeyPressed>()->code;
+                if (key >= sf::Keyboard::Key::Num1 && key <= sf::Keyboard::Key::Num9) {
+                    int slot = static_cast<int>(key) - static_cast<int>(sf::Keyboard::Key::Num1);
+                    playerInventory.setSelectedSlot(slot);
+                }
+
+            }
+
+            // Mouse tıklaması (envanter içi etkileşim)
+            if (ev->is<sf::Event::MouseButtonPressed>()) {
+                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                inventoryPanel.handleClick(mousePos);
+            }
         }
 
-        // Input handling
+        // --- Input ---
         character.handleInput();
 
-        // Mouse position
+        // --- Mouse Position ---
         sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
         int mX = static_cast<int>(mouseWorldPos.x) / static_cast<int>(tileSize.x);
         int mY = static_cast<int>(mouseWorldPos.y) / static_cast<int>(tileSize.y);
 
-        // Mining handling
+        // --- Mining ---
         bool isMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
         actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
 
-        // Character update
+        // --- Character Physics ---
         character.update(deltaTime);
 
-        // Collision resolution
         CollisionManager::resolveCharacterCollision(character, map, solidTiles);
-
-        // Ground checking
         character.setOnGround(CollisionManager::checkGroundCollision(character, map, solidTiles));
 
-        // Collision checking
         if (CollisionManager::checkHitboxCollision(character.getHitbox(), map, solidTiles)) {
             character.revertPosition();
         }
 
-        // World border
+        // --- World Borders ---
         unsigned int map_width = map.getWidth();
         unsigned int map_height = map.getHeight();
         sf::Vector2f playerPos = character.getPosition();
@@ -124,21 +155,28 @@ int main() {
             character.setOnGround(true);
         }
 
-        // Smooth camera
+        // --- Camera ---
         sf::Vector2f cameraTarget = character.getPosition();
         sf::Vector2f cameraPos = view.getCenter();
         sf::Vector2f cameraMove = (cameraTarget - cameraPos) * 5.0f * deltaTime;
         view.setCenter(cameraPos + cameraMove);
         window.setView(view);
 
-        // Selection box
+        // --- Selection Box ---
         selectionBox.setPosition({ static_cast<float>(mX * tileSize.x), static_cast<float>(mY * tileSize.y) });
 
-        // Render
+        // --- Rendering ---
         window.clear(sf::Color(120, 180, 240));
         window.draw(map);
         character.draw(window);
         window.draw(selectionBox);
+
+        // Hotbar her zaman görünür
+        playerInventory.draw(window, map.getTileSet());
+
+        // Envanter paneli (E ile aç/kapa)
+        inventoryPanel.draw(window);
+
         window.display();
     }
 

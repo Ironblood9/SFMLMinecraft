@@ -1,6 +1,5 @@
 #include "ActionManager.h"
 
-
 ActionManager::ActionManager(float distanceMultiplier)
     : distanceMultiplier(distanceMultiplier) {
 }

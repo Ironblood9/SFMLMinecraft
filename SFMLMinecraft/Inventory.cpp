@@ -1,0 +1,110 @@
+#include "Inventory.h"
+#include "TileID.h"
+
+Inventory::Inventory(int capacity)
+    : capacity(capacity), selectedSlot(0)
+{
+    items.resize(capacity);
+
+    // Default items - 1. slot kýlýç, 2. slot kazma
+    items[0] = InventoryItem(TOOL_SWORD, 1, "Sword");
+    items[1] = InventoryItem(TOOL_PICKAXE, 1, "Pickaxe");
+}
+
+bool Inventory::addItem(int tileId, int quantity) {
+    // Ayný item varsa stackle
+    for (auto& item : items) {
+        if (item.tileId == tileId && item.quantity < 64) {
+            item.quantity += quantity;
+            return true;
+        }
+    }
+
+    // Boþ slot bul
+    for (auto& item : items) {
+        if (item.tileId == TILE_AIR) {
+            item.tileId = tileId;
+            item.quantity = quantity;
+
+            // Ýsimlendirme
+            switch (tileId) {
+            case TILE_STONE: item.name = "Stone"; break;
+            case TILE_DIRT:  item.name = "Dirt"; break;
+            case TILE_GRASS: item.name = "Grass"; break;
+            case TILE_LOG:   item.name = "Wood"; break;
+            default:         item.name = "Unknown"; break;
+            }
+            return true;
+        }
+    }
+    return false; // Yer yok
+}
+
+bool Inventory::removeItem(int slotIndex, int quantity) {
+    if (slotIndex < 0 || slotIndex >= capacity) return false;
+
+    items[slotIndex].quantity -= quantity;
+    if (items[slotIndex].quantity <= 0) {
+        items[slotIndex] = InventoryItem(); // reset to air
+    }
+    return true;
+}
+
+InventoryItem* Inventory::getItem(int slotIndex) {
+    if (slotIndex < 0 || slotIndex >= capacity) return nullptr;
+    return &items[slotIndex];
+}
+
+void Inventory::setSelectedSlot(int slot) {
+    if (slot >= 0 && slot < 9) { // sadece hotbar
+        selectedSlot = slot;
+    }
+}
+
+InventoryItem* Inventory::getSelectedItem() {
+    return getItem(selectedSlot);
+}
+
+void Inventory::draw(sf::RenderWindow& window, const sf::Texture& texture) {
+    float slotSize = 50.f;
+    float startX = 400.f - (9 * slotSize) / 2.f; // ortala
+    float y = 550.f;
+
+    for (int i = 0; i < 9; ++i) {
+        sf::RectangleShape slot(sf::Vector2f(slotSize, slotSize));
+        slot.setPosition({ startX + i * slotSize, y });
+        slot.setFillColor(sf::Color(100, 100, 100, 200));
+        slot.setOutlineThickness(2.f);
+        slot.setOutlineColor(i == selectedSlot ? sf::Color::Yellow : sf::Color::White);
+        window.draw(slot);
+
+        auto& item = items[i];
+        if (item.tileId != TILE_AIR && item.quantity > 0 && item.sprite) {
+            item.sprite->setPosition({ startX + i * slotSize + 5, y + 5 });
+            item.sprite->setScale({ 0.5f, 0.5f });
+            window.draw(*item.sprite);
+        }
+    }
+}
+
+void Inventory::updateSprites(const sf::Texture& texture, const sf::Vector2u& tileSize) {
+    for (auto& item : items) {
+        if (item.tileId != TILE_AIR) {
+            item.sprite = std::make_unique<sf::Sprite>(texture);
+            int texX = static_cast<int>((item.tileId % 16) * tileSize.x);
+            int texY = static_cast<int>((item.tileId / 16) * tileSize.y);
+            item.sprite->setTextureRect(sf::IntRect(
+                { static_cast<int>(texX),static_cast<int>(texY) },
+                { static_cast<int>(tileSize.x),static_cast<int>(tileSize.y) }
+            ));
+        }
+        else {
+            item.sprite.reset(); // Boþ slotta sprite yok
+        }
+    }
+}
+
+// InventoryItem constructor
+InventoryItem::InventoryItem(int id, int qty, const std::string& n)
+    : tileId(id), quantity(qty), name(n) {
+}

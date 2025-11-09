@@ -42,6 +42,12 @@ enum TileID {
     TILE_ENCHANTING_TABLE = 182,
     TILE_WATER = 205,
     TILE_LAVA=210,
-    TILE_COUNT        // Total tile count
+    TILE_COUNT,       // Total tile count
+
+    TOOL_SWORD = 1000,
+    TOOL_PICKAXE = 1001,
+    TOOL_AXE = 1002,
+    TOOL_SHOVEL = 1003
 };
+
 

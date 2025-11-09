@@ -1,12 +1,10 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
-#include <string>
 
 class TileMap : public sf::Drawable, public sf::Transformable {
 public:
     bool load(const std::string& tileset, // file path
-        sf::Vector2u tileSize,     //  square size(exp:{32,32})
+        sf::Vector2u tileSize,     //  square size
         const std::vector<int>& tiles, //holding the tile index(0 - based) for each cell in the tileset
         unsigned int width, unsigned int height);
 
@@ -18,6 +16,9 @@ public:
     unsigned int getHeight() const { return map_height; }
     sf::Vector2u getTileSize() const { return map_tileSize; }
     const std::vector<int>& getTiles() const { return map_tiles; }
+
+    const sf::Texture& getTileSet() const { return map_tileset; }
+
 
 private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
