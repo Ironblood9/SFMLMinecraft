@@ -2,7 +2,7 @@
 #include "TileID.h"
 
 InventoryPanel::InventoryPanel(Inventory& inventory, const sf::Vector2u& windowSize)
-    : playerInventory(inventory), isVisible(false), columns(9), rows(4), slotSize(60.f) {
+    : playerInventory(inventory), isVisible(false), columns(9), rows(4), slotSize(46.f) {
     background.setFillColor(sf::Color(50, 50, 50, 220));
     background.setOutlineThickness(2.f);
     background.setOutlineColor(sf::Color::White);

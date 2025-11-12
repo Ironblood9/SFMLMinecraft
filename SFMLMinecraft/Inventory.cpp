@@ -66,7 +66,7 @@ InventoryItem* Inventory::getSelectedItem() {
 }
 
 void Inventory::draw(sf::RenderWindow& window, const sf::Texture& texture) {
-    float slotSize = 50.f;
+    float slotSize = 40.f;
     float startX = 400.f - (9 * slotSize) / 2.f;
     float y = 550.f;
 

@@ -61,15 +61,15 @@ enum TileID {
     TILE_MUSHROOM_BROWN = 29,
 
     // Liquids
-    TILE_WATER = 205,
+    TILE_WATER = 207,
     TILE_LAVA = 210,
 
     // Count sentinel (keeps original position/index)
     TILE_COUNT,
 
     // Tools (kept in same enum for backward compatibility with existing code)
-    TOOL_SWORD = 205,
-    TOOL_PICKAXE = 210,
+    TOOL_SWORD = 204,
+    TOOL_PICKAXE = 203,
     TOOL_AXE = 1002,
     TOOL_SHOVEL = 1003
 };
