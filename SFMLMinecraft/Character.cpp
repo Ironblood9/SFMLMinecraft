@@ -17,7 +17,7 @@ Character::Character(sf::Texture& texture)
     animations["slash2"] = Animation({ 64, 64 }, 4, 0.1f, 7);
     animations["shield"] = Animation({ 64, 64 }, 3, 0.12f, 8);
     animations["bow"] = Animation({ 64, 64 }, 3, 0.12f, 9);
-    animations["fall"] = Animation({ 64, 64 }, 1, 0.15f, 1);
+    animations["fall"] = Animation({ 64, 64 }, 1, 0.15f, 2);
 
     currentAnimation = "idle";
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
