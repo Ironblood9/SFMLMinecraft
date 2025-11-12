@@ -22,12 +22,20 @@ public:
     void setOnGround(bool onGround);
     bool getIsOnGround() const;
     void revertPosition();
-
+    // Pickaxe animation methods
     void startMining();
     void stopMining();
     bool isMining() const;
     bool isPickaxeAnimationComplete() const;
     void resetPickaxeAnimation();
+
+    // Sword animation methods
+    void startSwingingSword();
+    void stopSwingingSword();
+    bool isSwingingSword() const;
+    bool isSwordAnimationComplete() const;
+    void resetSwordAnimation();
+    float getSwordAnimationDuration() const { return SWORD_ANIMATION_DURATION; }
 
 private:
     void applyGravity(float deltaTime);
@@ -59,8 +67,12 @@ private:
     bool mining = false; // for pickaxe
     float pickaxeAnimationTimer = 0.0f;
 
+    bool swingingSword = false; // for sword
+    float swordAnimationTimer = 0.0f;
+
     // Constants
     static constexpr float moveSpeed = 400.0f;
     static constexpr float friction = 0.85f;
-    static constexpr float PICKAXE_ANIMATION_DURATION = 1.0f; 
+    static constexpr float PICKAXE_ANIMATION_DURATION = 1.0f;
+    static constexpr float SWORD_ANIMATION_DURATION = 0.7f; 
 };

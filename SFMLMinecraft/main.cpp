@@ -138,18 +138,20 @@ int main() {
         int mX = static_cast<int>(mouseWorldPos.x) / static_cast<int>(tileSize.x);
         int mY = static_cast<int>(mouseWorldPos.y) / static_cast<int>(tileSize.y);
 
-        // --- Mining ---
-        bool isMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-        actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
-
-
+        // --- Mining (Left Mouse) & Sword Attack (Right Mouse) ---
+        bool isLeftMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+        bool isRightMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right);
         if (!inventoryPanel.getVisible()) {
             character.handleInput();
-            actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isMousePressed);
 
+            // Mining with left mouse
+            actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isLeftMousePressed);
+
+            // Sword attack with right mouse
+            actionManager.handleSwordAttack(character, mX, mY, tileSize, deltaTime, isRightMousePressed);
         }
         else {
-            character.stopMovement(); 
+            character.stopMovement();
         }
 
         // --- Character Physics ---

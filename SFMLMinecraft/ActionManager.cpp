@@ -8,6 +8,9 @@ void ActionManager::stopAction(Character& character) {
     if (currentAction == ActionType::Mining) {
         character.stopMining();
     }
+    else if (currentAction == ActionType::Sword) {
+        character.stopSwingingSword();
+    }
     progress.active = false;
     progress.progress = 0.0f;
     progress.tileX = -1;
@@ -93,6 +96,74 @@ bool ActionManager::handleMining(Character& character, TileMap& map, int tileX, 
             stopAction(character);
             return true;
         }
+    }
+
+    return false;
+}
+
+bool ActionManager::handleSwordAttack(Character& character, int mouseX, int mouseY,
+    const sf::Vector2u& tileSize, float deltaTime, bool isMousePressed) {
+
+    // If we were swinging sword but mouse is no longer pressed, stop
+    if (currentAction == ActionType::Sword && !isMousePressed) {
+        stopAction(character);
+        return false;
+    }
+
+    // If no mouse press and no active action, do nothing
+    if (!isMousePressed && currentAction == ActionType::None) {
+        return false;
+    }
+
+    sf::Vector2f characterCenter = character.getPosition();
+    characterCenter.x += character.getGlobalBounds().size.x / 2.f;
+    characterCenter.y += character.getGlobalBounds().size.y / 2.f;
+
+    sf::Vector2f attackPoint(
+        mouseX * tileSize.x + tileSize.x / 2.f,
+        mouseY * tileSize.y + tileSize.y / 2.f
+    );
+
+    float distance = std::sqrt(
+        std::pow(characterCenter.x - attackPoint.x, 2) +
+        std::pow(characterCenter.y - attackPoint.y, 2)
+    );
+
+    float maxDistance = tileSize.x * distanceMultiplier;
+
+    // Distance check
+    if (distance > maxDistance) {
+        if (progress.active) {
+            stopAction(character);
+        }
+        return false;
+    }
+
+    // If we have an active sword action, update it
+    if (progress.active && currentAction == ActionType::Sword) {
+        progress.progress += deltaTime;
+
+        // Check if animation completed
+        if (progress.progress >= progress.requiredTime) {
+            stopAction(character);
+
+            // Burada düþmanlara hasar verme iþlemi yapýlabilir
+            // Örnek: checkForEnemiesAndDamage(mouseX, mouseY);
+
+            return true;
+        }
+    }
+
+    // Start new sword attack
+    if (!progress.active && isMousePressed && currentAction == ActionType::None) {
+        progress.active = true;
+        progress.tileX = mouseX;
+        progress.tileY = mouseY;
+        progress.progress = 0.0f;
+        progress.requiredTime = character.getSwordAnimationDuration();
+        currentAction = ActionType::Sword;
+        character.startSwingingSword();
+        return true;
     }
 
     return false;

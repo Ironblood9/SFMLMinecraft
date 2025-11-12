@@ -9,7 +9,7 @@ public:
     enum class ActionType {
         None,
         Mining,
-        SwordSwing,
+        Sword,
         Building
     };
 
@@ -22,6 +22,9 @@ public:
     };
 
     explicit ActionManager(float distanceMultiplier = 3.0f);
+
+    bool handleSwordAttack(Character& character, int mouseX, int mouseY,
+        const sf::Vector2u& tileSize, float deltaTime, bool isMousePressed);
 
     bool handleMining(Character& character, TileMap& map, int tileX, int tileY,
         const std::vector<int>& breakableTiles, const sf::Vector2u& tileSize,
@@ -38,6 +41,4 @@ private:
     float distanceMultiplier;
 };
 
-//bool handleSwordSwing(Character& character, float deltaTime);
-//bool handleBuilding(Character& character, TileMap& map, ...);
 

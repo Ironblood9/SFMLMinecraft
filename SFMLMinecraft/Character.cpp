@@ -12,11 +12,8 @@ Character::Character(sf::Texture& texture)
     animations["jump"] = Animation({ 64, 64 }, 1, 0.15f, 2);
     animations["pickaxe_idle"] = Animation({ 64, 64 }, 1, 0.1f, 3);
     animations["pickaxe"] = Animation({ 64, 67 }, 4, 0.1f, 4);
-    animations["attack3"] = Animation({ 64, 64 }, 4, 0.08f, 5);
-    animations["slash"] = Animation({ 64, 64 }, 3, 0.1f, 6);
-    animations["slash2"] = Animation({ 64, 64 }, 4, 0.1f, 7);
-    animations["shield"] = Animation({ 64, 64 }, 3, 0.12f, 8);
-    animations["bow"] = Animation({ 64, 64 }, 3, 0.12f, 9);
+    animations["sword_idle"] = Animation({ 64, 64 }, 1, 0.1f, 6);
+    animations["sword"] = Animation({ 64, 64 }, 4, 0.1f, 7);
     animations["fall"] = Animation({ 64, 64 }, 1, 0.15f, 2);
 
     currentAnimation = "idle";
@@ -32,10 +29,9 @@ void Character::update(float deltaTime) {
     previousPosition = sprite.getPosition();
 
     // Pickaxe animation
-    if (mining ) {
+    if (mining) {
         pickaxeAnimationTimer += deltaTime;
 
-        // Animasyon cycle
         if (pickaxeAnimationTimer >= PICKAXE_ANIMATION_DURATION) {
             if (mining) {
                 pickaxeAnimationTimer = 0.0f;
@@ -47,14 +43,33 @@ void Character::update(float deltaTime) {
         }
     }
 
+    // Sword animation
+    if (swingingSword) {
+        swordAnimationTimer += deltaTime;
+
+        if (swordAnimationTimer >= SWORD_ANIMATION_DURATION) {
+            if (swingingSword) {
+                swordAnimationTimer = 0.0f;
+                animations["sword"].reset();
+                swingingSword = false; 
+            }
+            else {
+                swordAnimationTimer = 0.0f;
+            }
+        }
+    }
+
     // Gravity
     if (!isOnGround) {
         applyGravity(deltaTime);
     }
 
     // Friction 
+    float currentFriction = friction;
     if (isOnGround) {
-        float currentFriction = (mining) ? friction * 0.8f : friction;
+        if (mining) currentFriction *= 0.8f;
+        if (swingingSword) currentFriction *= 0.7f; 
+
         velocity.x *= currentFriction;
         if (std::abs(velocity.x) < 10.f) velocity.x = 0.f;
     }
@@ -80,7 +95,7 @@ void Character::applyGravity(float deltaTime) {
 }
 
 void Character::jump() {
-    if (isOnGround && !mining) { 
+    if (isOnGround && !mining && !swingingSword) {
         velocity.y = jumpVelocity;
         isOnGround = false;
         isJumping = true;
@@ -89,6 +104,11 @@ void Character::jump() {
 
 void Character::updateAnimationState()
 {
+    if (swingingSword) {
+        setAnimation("sword");
+        return;
+    }
+
     if (mining) {
         setAnimation("pickaxe");
         return;
@@ -114,7 +134,9 @@ void Character::updateAnimationState()
 
 void Character::handleInput()
 {
-    float currentMoveSpeed = mining ? moveSpeed * 0.6f : moveSpeed;
+    float currentMoveSpeed = moveSpeed;
+    if (mining) currentMoveSpeed *= 0.6f;
+    if (swingingSword) currentMoveSpeed *= 0.4f; 
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
         velocity.x = -currentMoveSpeed;
@@ -134,13 +156,18 @@ void Character::handleInput()
         }
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround && !mining) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround && !mining && !swingingSword) {
         jump();
+    }
+
+    // Sword input (örneðin F tuþu)
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) && !swingingSword && !mining) {
+        startSwingingSword();
     }
 }
 
 void Character::startMining() {
-    if (!mining) {
+    if (!mining && !swingingSword) {
         mining = true;
         pickaxeAnimationTimer = 0.0f;
         setAnimation("pickaxe");
@@ -165,7 +192,32 @@ void Character::resetPickaxeAnimation() {
     pickaxeAnimationTimer = 0.0f;
 }
 
+// Sword animation methods
+void Character::startSwingingSword() {
+    if (!swingingSword && !mining) {
+        swingingSword = true;
+        swordAnimationTimer = 0.0f;
+        setAnimation("sword");
+        animations["sword"].reset();
+    }
+}
 
+void Character::stopSwingingSword() {
+    swingingSword = false;
+}
+
+bool Character::isSwingingSword() const {
+    return swingingSword;
+}
+
+bool Character::isSwordAnimationComplete() const {
+    return swordAnimationTimer >= SWORD_ANIMATION_DURATION;
+}
+
+void Character::resetSwordAnimation() {
+    swingingSword = false;
+    swordAnimationTimer = 0.0f;
+}
 
 //Origin!!!
 void Character::updateOrigin() {
