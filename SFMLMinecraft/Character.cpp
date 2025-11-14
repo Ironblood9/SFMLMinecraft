@@ -81,6 +81,9 @@ void Character::update(float deltaTime) {
     animations[currentAnimation].update(deltaTime);
     sprite.setTextureRect(animations[currentAnimation].getTextureRect());
 
+    // recenter origin after textureRect change so frames of different sizes stay aligned
+    updateOrigin();
+
     updateHitbox();
     updateAnimationState();
 }
@@ -153,16 +156,13 @@ void Character::handleInput()
         if (!facingRight) {
             facingRight = true;
             sprite.setScale({ 1.5f, 1.5f });
+            // ensure origin is correct when flipping back
+            updateOrigin();
         }
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && isOnGround && !mining && !swingingSword) {
         jump();
-    }
-
-    // Sword input (örneðin F tuþu)
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) && !swingingSword && !mining) {
-        startSwingingSword();
     }
 }
 
@@ -259,6 +259,8 @@ void Character::setAnimation(const std::string& animName) {
     if (animations.find(animName) != animations.end() && currentAnimation != animName) {
         currentAnimation = animName;
         animations[currentAnimation].reset();
+        // animation frame size may differ — keep origin centered
+        updateOrigin();
     }
 }
 
