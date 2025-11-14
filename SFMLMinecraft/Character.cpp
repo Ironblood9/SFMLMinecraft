@@ -51,7 +51,7 @@ void Character::update(float deltaTime) {
             if (swingingSword) {
                 swordAnimationTimer = 0.0f;
                 animations["sword"].reset();
-                swingingSword = false; 
+                swingingSword = false;
             }
             else {
                 swordAnimationTimer = 0.0f;
@@ -68,7 +68,7 @@ void Character::update(float deltaTime) {
     float currentFriction = friction;
     if (isOnGround) {
         if (mining) currentFriction *= 0.8f;
-        if (swingingSword) currentFriction *= 0.7f; 
+        if (swingingSword) currentFriction *= 0.7f;
 
         velocity.x *= currentFriction;
         if (std::abs(velocity.x) < 10.f) velocity.x = 0.f;
@@ -86,23 +86,6 @@ void Character::update(float deltaTime) {
 
     updateHitbox();
     updateAnimationState();
-}
-
-void Character::applyGravity(float deltaTime) {
-    velocity.y += gravity * deltaTime;
-
-    // Max fall speed
-    if (velocity.y > maxFallSpeed) {
-        velocity.y = maxFallSpeed;
-    }
-}
-
-void Character::jump() {
-    if (isOnGround && !mining && !swingingSword) {
-        velocity.y = jumpVelocity;
-        isOnGround = false;
-        isJumping = true;
-    }
 }
 
 void Character::updateAnimationState()
@@ -130,8 +113,34 @@ void Character::updateAnimationState()
             setAnimation("walk");
         }
         else {
-            setAnimation("idle");
+            // Choose idle animation depending on held item
+            if (heldItemId == TOOL_SWORD) {
+                setAnimation("sword_idle");
+            }
+            else if (heldItemId == TOOL_PICKAXE) {
+                setAnimation("pickaxe_idle");
+            }
+            else {
+                setAnimation("idle");
+            }
         }
+    }
+}
+
+void Character::applyGravity(float deltaTime) {
+    velocity.y += gravity * deltaTime;
+
+    // Max fall speed
+    if (velocity.y > maxFallSpeed) {
+        velocity.y = maxFallSpeed;
+    }
+}
+
+void Character::jump() {
+    if (isOnGround && !mining && !swingingSword) {
+        velocity.y = jumpVelocity;
+        isOnGround = false;
+        isJumping = true;
     }
 }
 
@@ -298,4 +307,15 @@ sf::FloatRect Character::getGlobalBounds() const {
 void Character::setPosition(const sf::Vector2f& position) {
     sprite.setPosition(position);
     updateHitbox();
+}
+
+void Character::setHeldItem(int tileOrToolId) {
+    if (heldItemId == tileOrToolId) return;
+    heldItemId = tileOrToolId;
+    // update idle immediately if not currently in an action
+    if (!mining && !swingingSword) {
+        // Force animation update to reflect new held item
+        updateAnimationState();
+        animations[currentAnimation].reset();
+    }
 }

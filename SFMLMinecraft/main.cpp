@@ -48,10 +48,13 @@ int main() {
     inventoryPanel.loadTexture("assets/tileset.png", tileSize);
 
     // optionally populate the inventory with tile IDs:
-	inventoryPanel.populateWithTiles(TILE_CATEGORY_TERRAIN);
+    inventoryPanel.populateWithTiles(TILE_CATEGORY_TERRAIN);
     inventoryPanel.populateWithTiles(TILE_CATEGORY_WOOD);
     inventoryPanel.populateWithTiles(TILE_CATEGORY_ORES);
     inventoryPanel.populateWithTiles(TILE_CATEGORY_DECORATIVE);
+
+    // track previous selected slot so we can stop actions when selection changes
+    int prevSelectedSlot = playerInventory.getSelectedSlot();
 
 
     sf::Font font;
@@ -98,6 +101,7 @@ int main() {
     bool wasMousePressed = false;
 
     // --- Game Loop ---
+    // --- Game Loop ---
     while (window.isOpen()) {
         float deltaTime = clock.restart().asSeconds();
 
@@ -122,7 +126,7 @@ int main() {
 
             }
 
-			// Mouse click ınventory interaction
+            // Mouse click inventory interaction
             if (ev->is<sf::Event::MouseButtonPressed>()) {
                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 inventoryPanel.handleClick(mousePos);
@@ -132,23 +136,44 @@ int main() {
         // --- Input ---
         character.handleInput();
 
+        // detect selected slot change and stop current action if selection changed
+        int currentSelectedSlot = playerInventory.getSelectedSlot();
+        if (currentSelectedSlot != prevSelectedSlot) {
+            actionManager.stopAction(character);
+            prevSelectedSlot = currentSelectedSlot;
+        }
+
+        // update character held item from inventory selection each frame
+        InventoryItem* selItem = playerInventory.getSelectedItem();
+        int heldId = (selItem ? selItem->tileId : TILE_AIR);
+        character.setHeldItem(heldId);
+
         // --- Mouse Position ---
         sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
         int mX = static_cast<int>(mouseWorldPos.x) / static_cast<int>(tileSize.x);
         int mY = static_cast<int>(mouseWorldPos.y) / static_cast<int>(tileSize.y);
 
-        // --- Mining (Left Mouse) & Sword Attack (Right Mouse) ---
+        // --- Actions (left-click behaviour depends on selected tool)
         bool isLeftMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
         bool isRightMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right);
+
         if (!inventoryPanel.getVisible()) {
             character.handleInput();
 
-            // Mining with left mouse
-            actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isLeftMousePressed);
-
-            // Sword attack with right mouse
-            actionManager.handleSwordAttack(character, mX, mY, tileSize, deltaTime, isRightMousePressed);
+            if (heldId == TOOL_SWORD) {
+                // left mouse -> sword attack
+                actionManager.handleSwordAttack(character, mX, mY, tileSize, deltaTime, isLeftMousePressed);
+            }
+            else if (heldId == TOOL_PICKAXE) {
+                // left mouse -> mining
+                actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isLeftMousePressed);
+            }
+            else {
+                // default behavior: left mining, right sword
+                actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isLeftMousePressed);
+                actionManager.handleSwordAttack(character, mX, mY, tileSize, deltaTime, isRightMousePressed);
+            }
         }
         else {
             character.stopMovement();

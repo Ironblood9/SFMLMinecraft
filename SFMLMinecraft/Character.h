@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Animation.h"
+#include "TileID.h"
 
 class Character {
 public:
@@ -37,6 +38,10 @@ public:
     void resetSwordAnimation();
     float getSwordAnimationDuration() const { return SWORD_ANIMATION_DURATION; }
 
+    // affects idle & input behavior
+    void setHeldItem(int tileOrToolId);
+    int getHeldItem() const { return heldItemId; }
+
 private:
     void applyGravity(float deltaTime);
     void jump();
@@ -70,9 +75,12 @@ private:
     bool swingingSword = false; // for sword
     float swordAnimationTimer = 0.0f;
 
+    // Held item id from inventory (TOOL_SWORD / TOOL_PICKAXE etc.)
+    int heldItemId = TILE_AIR;
+
     // Constants
     static constexpr float moveSpeed = 400.0f;
     static constexpr float friction = 0.85f;
     static constexpr float PICKAXE_ANIMATION_DURATION = 1.0f;
-    static constexpr float SWORD_ANIMATION_DURATION = 0.7f; 
+    static constexpr float SWORD_ANIMATION_DURATION = 0.7f;
 };
