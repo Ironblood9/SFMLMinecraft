@@ -25,7 +25,7 @@ enum TileID {
     TILE_BOOKSHELF = 35,
     TILE_MOSSY_COBBLESTONE = 36,
     TILE_OBSIDIAN = 37,
-    TILE_PLANKS = 4, // (duplicate name preserved for clarity with older code)
+    TILE_PLANKS = 4, 
     TILE_LAPIS_BLOCK = 144,
     TILE_CRAFTING_TABLE = 60,
     TILE_ENCHANTING_TABLE = 182,

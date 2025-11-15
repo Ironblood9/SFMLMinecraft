@@ -52,6 +52,7 @@ int main() {
     inventoryPanel.populateWithTiles(TILE_CATEGORY_WOOD);
     inventoryPanel.populateWithTiles(TILE_CATEGORY_ORES);
     inventoryPanel.populateWithTiles(TILE_CATEGORY_DECORATIVE);
+    inventoryPanel.populateWithTiles(TILE_CATEGORY_PLANTS);
 
     // track previous selected slot so we can stop actions when selection changes
     int prevSelectedSlot = playerInventory.getSelectedSlot();
@@ -101,7 +102,6 @@ int main() {
     bool wasMousePressed = false;
 
     // --- Game Loop ---
-    // --- Game Loop ---
     while (window.isOpen()) {
         float deltaTime = clock.restart().asSeconds();
 
@@ -111,7 +111,7 @@ int main() {
                 window.close();
             }
 
-            // E tuşu: envanteri aç/kapat
+            // E tuşu: inventory open/close
             if (ev->is<sf::Event::KeyPressed>()) {
                 if (ev->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::E) {
                     inventoryPanel.toggle();

@@ -104,12 +104,6 @@ bool ActionManager::handleMining(Character& character, TileMap& map, int tileX, 
 bool ActionManager::handleSwordAttack(Character& character, int mouseX, int mouseY,
     const sf::Vector2u& tileSize, float deltaTime, bool isMousePressed) {
 
-    // If we were swinging sword but mouse is no longer pressed, stop
-    if (currentAction == ActionType::Sword && !isMousePressed) {
-        stopAction(character);
-        return false;
-    }
-
     // If no mouse press and no active action, do nothing
     if (!isMousePressed && currentAction == ActionType::None) {
         return false;
@@ -148,13 +142,13 @@ bool ActionManager::handleSwordAttack(Character& character, int mouseX, int mous
             stopAction(character);
 
             // Burada düþmanlara hasar verme iþlemi yapýlabilir
-            // Örnek: checkForEnemiesAndDamage(mouseX, mouseY);
 
             return true;
         }
+        return false; // still in progress
     }
 
-    // Start new sword attack
+    // Start new sword attack (only when no action active and mouse pressed)
     if (!progress.active && isMousePressed && currentAction == ActionType::None) {
         progress.active = true;
         progress.tileX = mouseX;

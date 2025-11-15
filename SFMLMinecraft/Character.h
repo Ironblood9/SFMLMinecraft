@@ -75,12 +75,12 @@ private:
     bool swingingSword = false; // for sword
     float swordAnimationTimer = 0.0f;
 
-    // Held item id from inventory (TOOL_SWORD / TOOL_PICKAXE etc.)
+    // Held item id from inventory
     int heldItemId = TILE_AIR;
 
     // Constants
     static constexpr float moveSpeed = 400.0f;
     static constexpr float friction = 0.85f;
     static constexpr float PICKAXE_ANIMATION_DURATION = 1.0f;
-    static constexpr float SWORD_ANIMATION_DURATION = 0.7f;
+    static constexpr float SWORD_ANIMATION_DURATION = 0.4f;
 };

@@ -83,7 +83,6 @@ void Character::update(float deltaTime) {
 
     // recenter origin after textureRect change so frames of different sizes stay aligned
     updateOrigin();
-
     updateHitbox();
     updateAnimationState();
 }
@@ -268,7 +267,6 @@ void Character::setAnimation(const std::string& animName) {
     if (animations.find(animName) != animations.end() && currentAnimation != animName) {
         currentAnimation = animName;
         animations[currentAnimation].reset();
-        // animation frame size may differ — keep origin centered
         updateOrigin();
     }
 }
