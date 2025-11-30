@@ -41,7 +41,7 @@ int main() {
     }
 
     // --- Inventory System ---
-    Inventory playerInventory;
+    Inventory playerInventory(60);
     playerInventory.updateSprites(map.getTileSet(), tileSize);
 
     InventoryPanel inventoryPanel(playerInventory, window.getSize());

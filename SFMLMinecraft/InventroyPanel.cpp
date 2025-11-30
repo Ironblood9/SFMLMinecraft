@@ -3,6 +3,13 @@
 
 InventoryPanel::InventoryPanel(Inventory& inventory, const sf::Vector2u& windowSize)
     : playerInventory(inventory), isVisible(false), columns(10), rows(5), slotSize(46.f) {
+    // Eðer inventory kapasitesi panelin varsayýlan grid'inden farklýysa,
+    // paneli inventory kapasitesine göre ayarla (görsel büyütme -> veriyle eþleþtirme)
+    int invSize = static_cast<int>(playerInventory.getItems().size());
+    if (invSize > 0) {
+        if (columns > invSize) columns = invSize;
+        rows = (invSize + columns - 1) / columns;
+    }
     background.setFillColor(sf::Color(50, 50, 50, 220));
     background.setOutlineThickness(2.f);
     background.setOutlineColor(sf::Color::White);
@@ -52,7 +59,7 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
     static bool fontLoaded = font.openFromFile("assets/font.ttf");
 
     if (fontLoaded) {
-        sf::Text title(font, "Envanter", 20);
+        sf::Text title(font, "Inventoryy", 20);
         title.setPosition({ position.x + 10, position.y - 30 });
         title.setFillColor(sf::Color::White);
         window.draw(title);
@@ -75,9 +82,19 @@ void InventoryPanel::draw(sf::RenderWindow& window) {
             InventoryItem* item = playerInventory.getItem(slotIndex);
             if (item && item->tileId != TILE_AIR && item->quantity > 0) {
                 if (item->sprite) {
-                    item->sprite->setPosition(slot.getPosition() + sf::Vector2f(5.f, 5.f));
-                    item->sprite->setScale({ 0.8f, 0.8f });
-                    window.draw(*item->sprite);
+                    // Scale sprite to fit the panel slot, with small padding, and center it.
+                    float padding = 6.f;
+                    float avail = slotSize - 2.f * padding;
+                    // guard against zero tileSize
+                    float texW = (tileSize.x > 0) ? static_cast<float>(tileSize.x) : avail;
+                    float texH = (tileSize.y > 0) ? static_cast<float>(tileSize.y) : avail;
+                    float s = std::min(avail / texW, avail / texH);
+                    item->sprite->setScale({ s, s });
+                    // center inside slot
+                    sf::Vector2f spriteSize(texW * s, texH * s);
+                    sf::Vector2f spritePos = slot.getPosition() + sf::Vector2f((slotSize - spriteSize.x) / 2.f, (slotSize - spriteSize.y) / 2.f);
+                    item->sprite->setPosition(spritePos);
+                     window.draw(*item->sprite);
                 }
 
 				// Draw quantity if more than 1
