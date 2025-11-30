@@ -60,7 +60,7 @@ int main() {
 
     sf::Font font;
     if (!font.openFromFile("assets/font.ttf")) {
-        std::cout << "Font yüklenemedi, miktar yazıları olmadan devam ediliyor." << std::endl;
+        std::cout << "Font could not be loaded, continuing without quantity text." << std::endl;
     }
 
     // --- View (Camera) ---
@@ -128,8 +128,23 @@ int main() {
 
             // Mouse click inventory interaction
             if (ev->is<sf::Event::MouseButtonPressed>()) {
-                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-                inventoryPanel.handleClick(mousePos);
+                auto m = ev->getIf<sf::Event::MouseButtonPressed>()->button;
+                sf::Vector2i pixel = sf::Mouse::getPosition(window);
+                sf::Vector2f guiMouse = window.mapPixelToCoords(pixel, window.getDefaultView());
+                inventoryPanel.handleMousePressed(guiMouse, m);
+            }
+
+            if (ev->is<sf::Event::MouseButtonReleased>()) {
+                auto m = ev->getIf<sf::Event::MouseButtonReleased>()->button;
+                sf::Vector2i pixel = sf::Mouse::getPosition(window);
+                sf::Vector2f guiMouse = window.mapPixelToCoords(pixel, window.getDefaultView());
+                inventoryPanel.handleMouseReleased(guiMouse, m);
+            }
+
+            if (ev->is<sf::Event::MouseMoved>()) {
+                sf::Vector2i pixel = sf::Mouse::getPosition(window);
+                sf::Vector2f guiMouse = window.mapPixelToCoords(pixel, window.getDefaultView());
+                inventoryPanel.handleMouseMoved(guiMouse);
             }
         }
 
@@ -169,8 +184,12 @@ int main() {
                 // left mouse -> mining
                 actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isLeftMousePressed);
             }
+            else if (heldId != TILE_AIR) {
+                actionManager.handleBuilding(character, map, mX, mY, playerInventory, tileSize, deltaTime, isLeftMousePressed);
+                actionManager.handleSwordAttack(character, mX, mY, tileSize, deltaTime, isRightMousePressed);
+            }
             else {
-                // default behavior: left mining, right sword
+                // el boşsa normal mining/sword default davranışı
                 actionManager.handleMining(character, map, mX, mY, breakableTiles, tileSize, deltaTime, isLeftMousePressed);
                 actionManager.handleSwordAttack(character, mX, mY, tileSize, deltaTime, isRightMousePressed);
             }

@@ -2,7 +2,7 @@
 #include "Character.h"
 #include "TileMap.h"
 #include "TileID.h"
-
+#include "Inventory.h"
 
 class ActionManager {
 public:
@@ -28,6 +28,10 @@ public:
 
     bool handleMining(Character& character, TileMap& map, int tileX, int tileY,
         const std::vector<int>& breakableTiles, const sf::Vector2u& tileSize,
+        float deltaTime, bool isMousePressed);
+
+    bool handleBuilding(Character& character, TileMap& map, int tileX, int tileY,
+        Inventory& inventory, const sf::Vector2u& tileSize,
         float deltaTime, bool isMousePressed);
 
     void stopAction(Character& character);

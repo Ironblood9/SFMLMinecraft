@@ -162,3 +162,56 @@ bool ActionManager::handleSwordAttack(Character& character, int mouseX, int mous
 
     return false;
 }
+
+bool ActionManager::handleBuilding(Character& character, TileMap& map, int tileX, int tileY,
+    Inventory& inventory, const sf::Vector2u& tileSize,
+    float /*deltaTime*/, bool isMousePressed) {
+
+    if (!isMousePressed) return false;
+
+    // distance kontrol
+    sf::Vector2f characterCenter = character.getPosition();
+    characterCenter.x += character.getGlobalBounds().size.x / 2.f;
+    characterCenter.y += character.getGlobalBounds().size.y / 2.f;
+
+    sf::Vector2f tileCenter(
+        tileX * tileSize.x + tileSize.x / 2.f,
+        tileY * tileSize.y + tileSize.y / 2.f
+    );
+
+    float distance = std::sqrt(
+        std::pow(characterCenter.x - tileCenter.x, 2) +
+        std::pow(characterCenter.y - tileCenter.y, 2)
+    );
+
+    float maxDistance = tileSize.x * distanceMultiplier;
+
+    if (distance > maxDistance ||
+        tileX < 0 || tileX >= static_cast<int>(map.getWidth()) ||
+        tileY < 0 || tileY >= static_cast<int>(map.getHeight())) {
+        return false;
+    }
+
+    int targetTile = map.getTile(static_cast<unsigned int>(tileX), static_cast<unsigned int>(tileY));
+    if (targetTile != TILE_AIR) {
+        return false;
+    }
+
+	// Take selected item from inventory
+    int selSlot = inventory.getSelectedSlot();
+    InventoryItem* selItem = inventory.getItem(selSlot);
+    if (!selItem || selItem->tileId == TILE_AIR) return false;
+
+    int placeId = selItem->tileId;
+
+   
+    if (placeId == TOOL_SWORD || placeId == TOOL_PICKAXE || placeId == TOOL_AXE || placeId == TOOL_SHOVEL) {
+        return false;
+    }
+
+	// Add the block to the map
+    map.setTile(static_cast<unsigned int>(tileX), static_cast<unsigned int>(tileY), placeId);
+    
+    currentAction = ActionType::Building;
+    return true;
+}
