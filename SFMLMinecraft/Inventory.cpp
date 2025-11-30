@@ -24,15 +24,6 @@ bool Inventory::addItem(int tileId, int quantity) {
         if (item.tileId == TILE_AIR) {
             item.tileId = tileId;
             item.quantity = quantity;
-
-            // Set name based on tileId
-            switch (tileId) {
-            case TILE_STONE: item.name = "Stone"; break;
-            case TILE_DIRT:  item.name = "Dirt"; break;
-            case TILE_GRASS: item.name = "Grass"; break;
-            case TILE_LOG:   item.name = "Wood"; break;
-            default:         item.name = "Unknown"; break;
-            }
             return true;
         }
     }

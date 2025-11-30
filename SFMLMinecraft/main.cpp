@@ -41,7 +41,7 @@ int main() {
     }
 
     // --- Inventory System ---
-    Inventory playerInventory(60);
+    Inventory playerInventory(70);
     playerInventory.updateSprites(map.getTileSet(), tileSize);
 
     InventoryPanel inventoryPanel(playerInventory, window.getSize());
@@ -68,23 +68,34 @@ int main() {
 
     // --- Solid & Breakable tiles ---
     std::vector<int> solidTiles = {
-        TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_PLANKS, TILE_BRICKS,
-        TILE_TNT, TILE_COBBLESTONE, TILE_BEDROCK, TILE_SAND, TILE_LOG,
-        TILE_IRON_BLOCK, TILE_GOLD_BLOCK, TILE_DIAMOND_BLOCK, TILE_CHEST,
-        TILE_COAL_ORE, TILE_IRON_ORE, TILE_BOOKSHELF, TILE_MOSSY_COBBLESTONE,
-        TILE_OBSIDIAN, TILE_FURNACE, TILE_DIAMOND_ORE, TILE_RUBY_ORE,
-        TILE_CRAFTING_TABLE, TILE_PUMPKIN, TILE_DARK_LOG, TILE_WHITE_LOG,
-        TILE_MELON, TILE_CAKE, TILE_LAPIS_BLOCK, TILE_LAPIS_ORE,
-        TILE_ENCHANTING_TABLE, TILE_LEAVES
+        TILE_BEDROCK, TILE_STONE, TILE_DIRT, TILE_GRASS,TILE_COBBLESTONE, TILE_COAL_ORE,
+        TILE_IRON_ORE, TILE_DIAMOND_ORE, TILE_RUBY_ORE, TILE_LAPIS_ORE, TILE_SAND,
+        TILE_TNT, TILE_MOSSY_COBBLESTONE,
+        TILE_OBSIDIAN, TILE_PUMPKIN,
+        TILE_MELON, TILE_CAKE, 
+        TILE_GRAVEL, TILE_SAND_BLOCK, TILE_GOLD_ORE,
+        TILE_STONE_BRICK, TILE_STONE_BRICK2, TILE_MOSSY_STONE, TILE_CRACKED_STONE,
+        TILE_GLOW_STONE, TILE_SPONGE, TILE_ICE_BLOCK,
+        TILE_NETHER_BRICK, TILE_NETHER, TILE_NETHER_SOUL_SAND,
+        TILE_IRON_LADDER, TILE_BED1, TILE_BED2, TILE_PUMPKIN_HEAD,
+        TILE_CACTUS, TILE_MUSICBOX,
     };
 
     std::vector<int> breakableTiles = {
         TILE_STONE, TILE_DIRT, TILE_GRASS, TILE_COBBLESTONE, TILE_COAL_ORE,
         TILE_IRON_ORE, TILE_DIAMOND_ORE, TILE_RUBY_ORE, TILE_LAPIS_ORE,
         TILE_LOG, TILE_DARK_LOG, TILE_WHITE_LOG, TILE_LEAVES, TILE_SAND,
-        TILE_BOOKSHELF, TILE_PLANKS, TILE_TNT, TILE_MOSSY_COBBLESTONE,
+        TILE_BOOKSHELF, TILE_PLANKS,TILE_WHITE_PLANKS ,TILE_DARK_PLANKS , TILE_ACACIA_PLANKS ,TILE_CHERRY_PLANKS , TILE_CRIMSON_PLANKS,
+        TILE_JUNGLE_PLANKS,TILE_MANGROVE_PLANKS, TILE_WARPED_PLANKS , TILE_TNT, TILE_MOSSY_COBBLESTONE,
         TILE_OBSIDIAN, TILE_FURNACE, TILE_CRAFTING_TABLE, TILE_PUMPKIN,
-        TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE
+        TILE_MELON, TILE_CAKE, TILE_ENCHANTING_TABLE,
+        TILE_GRAVEL, TILE_SAND_BLOCK, TILE_GOLD_ORE,
+        TILE_STONE_BRICK, TILE_STONE_BRICK2, TILE_MOSSY_STONE, TILE_CRACKED_STONE,
+        TILE_GLASS, TILE_GLOW_STONE, TILE_SPONGE, TILE_ICE_BLOCK,
+        TILE_NETHER_BRICK, TILE_NETHER, TILE_NETHER_SOUL_SAND,
+        TILE_LADDER, TILE_IRON_LADDER, TILE_BED1, TILE_BED2, TILE_PUMPKIN_HEAD,
+        TILE_CACTUS, TILE_BAMBOO, TILE_MUSICBOX,TILE_ENDER_CHEST,
+        TILE_FLOWER_RED, TILE_FLOWER_YELLOW, TILE_MUSHROOM_RED, TILE_MUSHROOM_BROWN
     };
 
     // --- Selection Box ---
@@ -145,6 +156,23 @@ int main() {
                 sf::Vector2i pixel = sf::Mouse::getPosition(window);
                 sf::Vector2f guiMouse = window.mapPixelToCoords(pixel, window.getDefaultView());
                 inventoryPanel.handleMouseMoved(guiMouse);
+            }
+
+            // Mouse wheel -> change hotbar selection
+            if (ev->is<sf::Event::MouseWheelScrolled>()) {
+                float delta = ev->getIf<sf::Event::MouseWheelScrolled>()->delta;
+                int sel = playerInventory.getSelectedSlot();
+
+                if (delta > 0.f) {
+                    // wheel up -> previous slot (wrap)
+                    sel = (sel - 1 + 9) % 9;
+                }
+                else if (delta < 0.f) {
+                    // wheel down -> next slot (wrap)
+                    sel = (sel + 1) % 9;
+                }
+
+                playerInventory.setSelectedSlot(sel);
             }
         }
 

@@ -4,8 +4,6 @@
 InventoryPanel::InventoryPanel(Inventory& inventory, const sf::Vector2u& windowSize)
     : playerInventory(inventory), isVisible(false), columns(10), rows(5), slotSize(46.f), guiWindowSize(windowSize),
       dragging(false), dragSrcIndex(-1), dragTileId(TILE_AIR), dragQuantity(0) {
-    // Eðer inventory kapasitesi panelin varsayýlan grid'inden farklýysa,
-    // paneli inventory kapasitesine göre ayarla (görsel büyütme -> veriyle eþleþtirme)
     int invSize = static_cast<int>(playerInventory.getItems().size());
     if (invSize > 0) {
         if (columns > invSize) columns = invSize;
@@ -253,7 +251,7 @@ void InventoryPanel::handleMouseReleased(const sf::Vector2f& mousePos, sf::Mouse
         return;
     }
 
-    // Hotbar region (match Inventory::draw constants)
+    // Hotbar region 
     const float hotbarSlot = 40.f;
     float startX = static_cast<float>(guiWindowSize.x) / 2.f - (9 * hotbarSlot) / 2.f;
     float y = static_cast<float>(guiWindowSize.y) - 50.f;
