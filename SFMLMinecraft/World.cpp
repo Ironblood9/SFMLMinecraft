@@ -21,6 +21,14 @@ void generateWaterPool(std::vector<int>& tiles, unsigned int width, unsigned int
             if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
                 float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2));
                 if (distance < size) {
+                    // don't place water in mid-air: require support below or bottom row
+                    int belowY = y + 1;
+                    if (belowY < static_cast<int>(height)) {
+                        if (tiles[x + belowY * width] == TILE_AIR) {
+                            continue;
+                        }
+                    }
+
                     int currentTile = tiles[x + y * width];
                     if (currentTile == TILE_LAVA) {
                         tiles[x + y * width] = TILE_OBSIDIAN;
@@ -40,6 +48,13 @@ void generateLavaPool(std::vector<int>& tiles, unsigned int width, unsigned int 
             if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
                 float distance = std::sqrt(std::pow(x - centerX, 2) + std::pow(y - centerY, 2));
                 if (distance < size) {
+                    int belowY = y + 1;
+                    if (belowY < static_cast<int>(height)) {
+                        if (tiles[x + belowY * width] == TILE_AIR) {
+                            continue;
+                        }
+                    }
+
                     int currentTile = tiles[x + y * width];
                     if (currentTile == TILE_WATER) {
                         tiles[x + y * width] = TILE_OBSIDIAN;
@@ -288,10 +303,11 @@ void generateCleanTerrainWithLiquids(std::vector<int>& tiles, unsigned int width
 
     
     std::cout << "Simulating liquid flow..." << std::endl;
-    for (int i = 0; i < 10; ++i) { 
-        simulateWaterFlow(tiles, width, height);
-        simulateLavaFlow(tiles, width, height);
-        checkLiquidInteractions(tiles, width, height);
+    int iterations = std::max(10, static_cast<int>(height) / 10); 
+    for (int i = 0; i < iterations; ++i) {
+    simulateWaterFlow(tiles, width, height);
+    simulateLavaFlow(tiles, width, height);
+    checkLiquidInteractions(tiles, width, height);
     }
 }
 

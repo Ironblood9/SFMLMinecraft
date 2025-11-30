@@ -24,12 +24,9 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u tileSize,
         return false;
     }
 
-
-
-
-    // Texture'ı repeat modunda ayarla ve smooth'u kapat
+    
     map_tileset.setRepeated(false);
-    map_tileset.setSmooth(false);
+    map_tileset.setSmooth(true);
     map_tileSize = tileSize;
     map_width = width;
     map_height = height;

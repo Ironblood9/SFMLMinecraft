@@ -12,8 +12,8 @@ int main() {
     sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "2D Minecraft");
     window.setFramerateLimit(60);
 
-    const unsigned int width = 100u;
-    const unsigned int height = 60u;
+    const unsigned int width = 200u;
+    const unsigned int height = 120u;
     const sf::Vector2u tileSize(46u, 46u);
 
     std::vector<int> tiles(width * height, TILE_AIR);
@@ -39,6 +39,8 @@ int main() {
         std::cout << "Tileset failed to load! Check tileset file." << std::endl;
         return -1;
     }
+
+    // ensure the scene texture (and tileset) use smoothing already; tileset smoothing set in TileMap::load
 
     // --- Inventory System ---
     Inventory playerInventory(70);
@@ -256,7 +258,6 @@ int main() {
         sf::Vector2f cameraPos = view.getCenter();
         sf::Vector2f cameraMove = (cameraTarget - cameraPos) * 5.0f * deltaTime;
         view.setCenter(cameraPos + cameraMove);
-        window.setView(view);
 
         // --- Selection Box ---
         selectionBox.setPosition({ static_cast<float>(mX * tileSize.x), static_cast<float>(mY * tileSize.y) });
