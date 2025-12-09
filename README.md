@@ -12,21 +12,37 @@ The goal is to explore game engine logic, block-based world systems, and core ga
 
 🧱 Block breaking and removal system
 
-🔹 Planned Features
-
 🏗️ Block placement (Building)
 
-⚔️ Sword attack animation
+⚔️ Sword and pickaxe animation
+
+💬 Basic inventory system
+
+🔹 Planned Features
 
 👾 NPCs and enemies
 
-💬 Basic inventory / crafting system (future)
+💬 crafting system 
 
-<img width="802" height="605" alt="Ekran görüntüsü 2025-11-02 213553" src="https://github.com/user-attachments/assets/071c1bd5-3821-4c21-98ad-187352258afd" />
+🎮 How to Play the Game
 
-<img width="802" height="601" alt="Ekran görüntüsü 2025-11-02 213756" src="https://github.com/user-attachments/assets/b4a50140-7bb3-47fc-8d6d-6bc7ca8a8386" />
+Go to the Releases section and download the latest ZIP file. ⬇️
 
-<img width="799" height="597" alt="Ekran görüntüsü 2025-11-05 213726" src="https://github.com/user-attachments/assets/fedf2946-1d48-471f-8c63-d53af13415e0" />
+Extract (unzip) the downloaded file to any folder on your computer. 📂
+
+Open the folder and double-click SFMLMinecraft.exe to start the game. ▶️
+
+⚠️ Windows Security Warning
+
+Since the game is not digitally signed, Windows may show a “Windows protected your PC” warning.
+
+If this happens:
+
+Click More info. ℹ️
+
+Then click Run anyway. 🚀
+
+After this, the game will launch without any issues. ✔️
 
 🧰 Technologies
 C++
